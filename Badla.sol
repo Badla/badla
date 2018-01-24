@@ -2,7 +2,7 @@ pragma solidity ^0.4.11;
 import "github.com/oraclize/ethereum-api/oraclizeAPI.sol";
 
 
-contract BadlaReverse is usingOraclize {
+contract Badla is usingOraclize {
 
     unit public currentPrice;
 
