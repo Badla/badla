@@ -26,6 +26,9 @@ contract Badla is usingOraclize {
     }
 
     mapping(uint => Proposal) public proposals;
+    mapping(address => uint) public cashBalances;
+    mapping(address => uint) public tokenBalances;
+
     uint public proposalCount;
 
     event LogNewOraclizeQuery(string description);
@@ -33,7 +36,7 @@ contract Badla is usingOraclize {
     function createProposal(uint nearLegPrice,
                             uint term,
                             uint farLegPrice,
-                            uint triggerPrice) public returns (uint proposalId) {
+                            uint triggerPrice) public payable returns (uint proposalId) {
 
 
         //Todo: TokenPair types should be captured and validated
@@ -53,17 +56,14 @@ contract Badla is usingOraclize {
         return p.proposalId;
     }
 
-    function acceptProposal(uint proposalId, uint startTime) public returns (bool) {
+    function acceptProposal(uint proposalId, uint startTime) public payable returns (bool) {
 
         Proposal memory p = proposals[proposalId];
         require(p.exists);
         require(msg.value == p.nearLegPrice);
         require(p.state == 0);
 
-        //Todo: it should be of type DWETH
-        if (!msg.sender.send(p.vol)) {
-            return false;
-        }
+        cashBalances[msg.sender] += p.vol;
 
         p.player = msg.sender;
         p.startTime = startTime;
@@ -72,27 +72,16 @@ contract Badla is usingOraclize {
         return true;
     }
 
-    function settleProposal(uint proposalId) public returns(bool) {
+    function settleProposal(uint proposalId) public payable returns(bool) {
 
         Proposal memory p = proposals[proposalId];
         require(p.exists);
         require(p.state == 1);
-        require(msg.value == p.farLegPrice);
+        require(msg.value == p.vol);
 
-        //Todo: it should be of type ERCX
-        if (!msg.sender.send(p.farLegPrice)) {
-            return false;
-        }
-
-        //Todo: it should be of type ERCX
-        if (p.banker.send(p.nearLegPrice-p.farLegPrice )) {
-            return false;
-        }
-
-        //Todo: it should be of type DWETH
-        if (p.banker.send(p.vol)) {
-            return false;
-        }
+        tokenBalances[msg.sender] += p.farLegPrice;
+        cashBalances[p.banker] += p.vol;
+        tokenBalances[p.banker] += (p.nearLegPrice-p.farLegPrice);
 
         p.state = 5;
 
@@ -106,10 +95,7 @@ contract Badla is usingOraclize {
         require(p.state == 1);
         require(currentPrice > p.triggerPrice);
 
-        //Todo: it should be of type ERCX
-        if (p.banker.send(p.nearLegPrice)) {
-            return false;
-        }
+        tokenBalances[p.banker] += p.nearLegPrice;
 
         p.state = 4;
 
@@ -123,10 +109,7 @@ contract Badla is usingOraclize {
         require(p.state == 1);
         require(now > p.startTime + p.term);
 
-        //Todo: it should be of type ERCX
-        if (p.banker.send(p.nearLegPrice)) {
-            return false;
-        }
+        tokenBalances[p.banker] += p.nearLegPrice;
 
         p.state = 3;
         return true;
@@ -138,12 +121,41 @@ contract Badla is usingOraclize {
         require(p.exists);
         require(p.state == 0);
 
-        //Todo: it should be of type DWETH
-        if (!msg.sender.send(p.cash)) {
-            return false;
-        }
+        cashBalances[p.banker] += p.vol;
 
         p.state = 2;
+        return true;
+    }
+
+    function withdrawCash() public returns (bool) {
+
+        uint amount = cashBalances[msg.sender];
+
+        if (amount > 0) {
+
+            cashBalances[msg.sender] = 0;
+
+            if (!msg.sender.send(amount)) {
+                cashBalances[msg.sender] = amount;
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function withdrawTokens() public returns (bool) {
+
+        uint amount = tokenBalances[msg.sender];
+
+        if (amount > 0) {
+
+            tokenBalances[msg.sender] = 0;
+
+            if (!msg.sender.send(amount)) {
+                tokenBalances[msg.sender] = amount;
+                return false;
+            }
+        }
         return true;
     }
 
@@ -156,7 +168,17 @@ contract Badla is usingOraclize {
         updatePrice();
     }
 
-    function stringToUint(string s) private constant returns (uint result) {
+    function updatePrice() public payable {
+
+        if (oraclize_getPrice("URL") > this.balance) {
+            LogNewOraclizeQuery("Oraclize query was NOT sent, please add some ETH to cover for the query fee");
+        } else {
+            LogNewOraclizeQuery("Oraclize query was sent, standing by for the answer..");
+            oraclize_query(60, "URL", "json(http://demo5882368.mockable.io/latest_price).rates.ERCX");
+        }
+    }
+
+    function stringToUint(string s) internal pure returns (uint result) {
 
         bytes memory b = bytes(s);
         uint i;
@@ -166,16 +188,6 @@ contract Badla is usingOraclize {
             if (c >= 48 && c <= 57) {
                 result = result * 10 + (c - 48);
             }
-        }
-    }
-
-    function updatePrice() private payable {
-
-        if (oraclize_getPrice("URL") > this.balance) {
-            LogNewOraclizeQuery("Oraclize query was NOT sent, please add some ETH to cover for the query fee");
-        } else {
-            LogNewOraclizeQuery("Oraclize query was sent, standing by for the answer..");
-            oraclize_query(60, "URL", "json(http://demo5882368.mockable.io/latest_price).rates.ERCX");
         }
     }
 
