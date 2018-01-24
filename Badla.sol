@@ -1,14 +1,15 @@
-pragma solidity ^0.4.11;
-import "github.com/oraclize/ethereum-api/oraclizeAPI.sol";
+pragma solidity ^0.4.11; // solhint-disable-line compiler-fixed
+import "oraclize/oraclizeAPI.sol"; // solhint-disable-line
 
 
 contract Badla is usingOraclize {
 
-    unit public currentPrice;
+    uint public currentPrice;
 
     //Two tokens are ETHX and BWETH
     struct Proposal {
 
+        bool exists;
         uint proposalId;
         address banker;
         address player;
@@ -16,7 +17,7 @@ contract Badla is usingOraclize {
         uint nearLegPrice;
         uint term;
         uint farLegPrice;
-        unit triggerPrice;
+        uint triggerPrice;
         uint state;
 
         //0 -> new, 1-> accepted, 2->cancelled, 3->force on expiry, 4-> force on price, 5->settled
@@ -36,9 +37,10 @@ contract Badla is usingOraclize {
 
 
         //Todo: TokenPair types should be captured and validated
-        require(p.nearLegPrice > p.farLegPrice);
+        require(nearLegPrice > farLegPrice);
 
-        Proposal p = proposals[proposalCount];
+        Proposal storage p = proposals[proposalCount];
+        p.exists = true;
         p.proposalId = proposalCount++;
         p.banker = msg.sender;
         p.vol = msg.value;
@@ -53,9 +55,8 @@ contract Badla is usingOraclize {
 
     function acceptProposal(uint proposalId, uint startTime) public returns (bool) {
 
-        //Todo: check if proposal exists
-        Proposal p = proposals[proposalId];
-
+        Proposal memory p = proposals[proposalId];
+        require(p.exists);
         require(msg.value == p.nearLegPrice);
         require(p.state == 0);
 
@@ -73,10 +74,10 @@ contract Badla is usingOraclize {
 
     function settleProposal(uint proposalId) public returns(bool) {
 
-        Proposal p = proposals[proposalId];
-
+        Proposal memory p = proposals[proposalId];
+        require(p.exists);
         require(p.state == 1);
-        require(msg.value == p.settlementAmount);
+        require(msg.value == p.farLegPrice);
 
         //Todo: it should be of type ERCX
         if (!msg.sender.send(p.farLegPrice)) {
@@ -100,8 +101,8 @@ contract Badla is usingOraclize {
 
     function forceCloseOnPrice(uint proposalId) public returns(bool) {
 
-        Proposal p = proposals[proposalId];
-
+        Proposal memory p = proposals[proposalId];
+        require(p.exists);
         require(p.state == 1);
         require(currentPrice > p.triggerPrice);
 
@@ -117,8 +118,8 @@ contract Badla is usingOraclize {
 
     function forceCloseOnExpiry(uint proposalId) public returns(bool) {
 
-        Proposal p = proposals[proposalId];
-
+        Proposal memory p = proposals[proposalId];
+        require(p.exists);
         require(p.state == 1);
         require(now > p.startTime + p.term);
 
@@ -133,9 +134,8 @@ contract Badla is usingOraclize {
 
     function cancelProposal(uint proposalId) public returns (bool) {
 
-        //Todo: check if proposal exists
-        Proposal p = proposals[proposalId];
-
+        Proposal memory p = proposals[proposalId];
+        require(p.exists);
         require(p.state == 0);
 
         //Todo: it should be of type DWETH
@@ -147,7 +147,7 @@ contract Badla is usingOraclize {
         return true;
     }
 
-    function __callback(bytes32, string result) private {
+    function __callback(bytes32, string result) public {
 
         if (msg.sender != oraclize_cbAddress()) revert();
 
