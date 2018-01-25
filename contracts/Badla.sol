@@ -1,5 +1,5 @@
 pragma solidity ^0.4.11; // solhint-disable-line compiler-fixed
-//import "./oraclizeAPI_0.5.sol"; // solhint-disable-line
+import "./oraclizeAPI_0.5.sol"; // solhint-disable-line
 
 
 contract ERC20Interface {
@@ -10,13 +10,11 @@ contract ERC20Interface {
     function transfer(address to, uint tokens) public returns (bool success);
     function approve(address spender, uint tokens) public returns (bool success);
     function transferFrom(address from, address to, uint tokens) public returns (bool success);
-
-    event Transfer(address indexed from, address indexed to, uint tokens);
-    event Approval(address indexed tokenOwner, address indexed spender, uint tokens);
 }
 
-//contract Badla is usingOraclize {
-contract Badla {
+
+contract Badla is usingOraclize {
+//contract Badla {
 
     uint public currentPrice;
 
@@ -42,8 +40,7 @@ contract Badla {
     }
 
     mapping(uint => Proposal) public proposals;
-    mapping(address => uint) public cashBalances;
-    mapping(address => uint) public tokenBalances;
+    mapping(address => mapping(address => uint)) public pendingReturns;
 
     uint public proposalCount;
 
@@ -59,7 +56,7 @@ contract Badla {
 
 
         require(nearLegPrice > farLegPrice);
-        require(ERC20Interface(cashTokenAddress).allowance(msg.sender, this) == vol);
+        require(ERC20Interface(cashTokenAddress).allowance(msg.sender, this) >= vol);
 
         if (!ERC20Interface(cashTokenAddress).transferFrom(msg.sender, this, vol)) {
             return 0;
@@ -83,33 +80,41 @@ contract Badla {
         return p.proposalId;
     }
 
-    function acceptProposal(uint proposalId, uint startTime) public payable returns (bool) {
+    function acceptProposal(uint proposalId) public returns (bool) {
 
         Proposal memory p = proposals[proposalId];
         require(p.exists);
-        require(msg.value == p.nearLegPrice);
         require(p.state == 0);
+        require(ERC20Interface(p.tokenAddress).allowance(msg.sender, this) >= p.nearLegPrice * p.vol);
 
-        cashBalances[msg.sender] += p.vol;
+        if (!ERC20Interface(p.tokenAddress).transferFrom(msg.sender, this, p.nearLegPrice * p.vol)) {
+            return false;
+        }
+
+        pendingReturns[msg.sender][p.cashTokenAddress] += p.vol;
 
         p.player = msg.sender;
-        p.startTime = startTime;
+        p.startTime = now;
         p.state = 1;
 
         return true;
     }
 
-    function settleProposal(uint proposalId) public payable returns(bool) {
+    function settleProposal(uint proposalId) public returns(bool) {
 
         Proposal storage p = proposals[proposalId];
         require(p.exists);
         require(p.state == 1);
-        require(msg.value == p.vol);
         require(p.player == msg.sender);
+        require(ERC20Interface(p.cashTokenAddress).allowance(msg.sender, this) >= p.vol);
 
-        tokenBalances[msg.sender] += p.farLegPrice;
-        cashBalances[p.banker] += p.vol;
-        tokenBalances[p.banker] += (p.nearLegPrice-p.farLegPrice);
+        if (!ERC20Interface(p.cashTokenAddress).transferFrom(msg.sender, this, p.vol)) {
+            return false;
+        }
+
+        pendingReturns[p.player][p.tokenAddress] += (p.farLegPrice * p.vol);
+        pendingReturns[p.banker][p.cashTokenAddress] += p.vol;
+        pendingReturns[p.banker][p.cashTokenAddress] += ((p.nearLegPrice-p.farLegPrice) * p.vol);
 
         p.state = 5;
 
@@ -124,7 +129,7 @@ contract Badla {
         require(currentPrice > p.triggerPrice);
         require(p.banker == msg.sender);
 
-        tokenBalances[p.banker] += p.nearLegPrice;
+        pendingReturns[p.banker][p.tokenAddress] += (p.nearLegPrice * p.vol);
 
         p.state = 4;
 
@@ -136,77 +141,49 @@ contract Badla {
         Proposal storage p = proposals[proposalId];
         require(p.exists);
         require(p.state == 1);
-        require(now > p.startTime + p.term);
+        require(now > (p.startTime + p.term));
         require(p.banker == msg.sender);
 
-        tokenBalances[p.banker] += p.nearLegPrice;
+        pendingReturns[p.banker][p.tokenAddress] += (p.nearLegPrice * p.vol);
 
         p.state = 3;
+
         return true;
     }
 
     function cancelProposal(uint proposalId) public returns (bool) {
 
-        LogBadlaEvent("cancelProposal");
-
         Proposal storage p = proposals[proposalId];
 
-        LogBadlaEvent("cancelProposal: got the proposla");
-
         require(p.exists);
-
-        LogBadlaEvent("cancelProposal: proposal exists");
-
         require(p.state == 0);
-
-        LogBadlaEvent("cancelProposal: state valid exists");
-
         require(p.banker == msg.sender);
 
-        LogBadlaEvent("cancelProposal: Only banker can cancel");
-
-        cashBalances[p.banker] += p.vol;
-
-        LogBadlaEvent("cancelProposal:cash balance updated");
+        pendingReturns[p.banker][p.cashTokenAddress] += p.vol;
 
         p.state = 2;
 
         return true;
     }
 
-    function withdrawCash() public returns (bool) {
+    function withdraw(address tokenAddress) public returns (bool) {
 
-        uint amount = cashBalances[msg.sender];
+        uint amount = pendingReturns[msg.sender][tokenAddress];
 
         if (amount > 0) {
 
-            cashBalances[msg.sender] = 0;
+            pendingReturns[msg.sender][tokenAddress] = 0;
 
-            if (!msg.sender.send(amount)) {
-                cashBalances[msg.sender] = amount;
+            if (!ERC20Interface(tokenAddress).transferFrom(this, msg.sender, amount)) {
+                pendingReturns[msg.sender][tokenAddress] = amount;
                 return false;
             }
+
         }
         return true;
     }
 
-    function withdrawTokens() public returns (bool) {
-
-        uint amount = tokenBalances[msg.sender];
-
-        if (amount > 0) {
-
-            tokenBalances[msg.sender] = 0;
-
-            if (!msg.sender.send(amount)) {
-                tokenBalances[msg.sender] = amount;
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /*function __callback(bytes32, string result) public {
+    function __callback(bytes32, string result) public {
 
         if (msg.sender != oraclize_cbAddress()) revert();
 
@@ -218,9 +195,9 @@ contract Badla {
     function updatePrice() public payable {
 
         if (oraclize_getPrice("URL") > this.balance) {
-            LogNewOraclizeQuery("Oraclize query was NOT sent, please add some ETH to cover for the query fee");
+            LogBadlaEvent("Oraclize query was NOT sent, please add some ETH to cover for the query fee");
         } else {
-            LogNewOraclizeQuery("Oraclize query was sent, standing by for the answer..");
+            LogBadlaEvent("Oraclize query was sent, standing by for the answer..");
             oraclize_query(60, "URL", "json(http://demo5882368.mockable.io/latest_price).rates.ERCX");
         }
     }
@@ -236,6 +213,6 @@ contract Badla {
                 result = result * 10 + (c - 48);
             }
         }
-    }*/
+    }
 
 }
