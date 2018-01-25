@@ -2,6 +2,19 @@ pragma solidity ^0.4.11; // solhint-disable-line compiler-fixed
 //import "./oraclizeAPI_0.5.sol"; // solhint-disable-line
 
 
+contract ERC20Interface {
+
+    function totalSupply() public constant returns (uint);
+    function balanceOf(address tokenOwner) public constant returns (uint balance);
+    function allowance(address tokenOwner, address spender) public constant returns (uint remaining);
+    function transfer(address to, uint tokens) public returns (bool success);
+    function approve(address spender, uint tokens) public returns (bool success);
+    function transferFrom(address from, address to, uint tokens) public returns (bool success);
+
+    event Transfer(address indexed from, address indexed to, uint tokens);
+    event Approval(address indexed tokenOwner, address indexed spender, uint tokens);
+}
+
 //contract Badla is usingOraclize {
 contract Badla {
 
@@ -20,6 +33,8 @@ contract Badla {
         uint farLegPrice;
         uint triggerPrice;
         uint state;
+        address cashTokenAddress;
+        address tokenAddress;
 
         //0 -> new, 1-> accepted, 2->cancelled, 3->force on expiry, 4-> force on price, 5->settled
 
@@ -32,22 +47,33 @@ contract Badla {
 
     uint public proposalCount;
 
-    event LogNewOraclizeQuery(string description);
+    event LogBadlaEvent(string description);
 
-    function createProposal(uint nearLegPrice,
+    function createProposal(address cashTokenAddress,
+                            uint vol,
+                            address tokenAddress,
+                            uint nearLegPrice,
                             uint term,
                             uint farLegPrice,
-                            uint triggerPrice) public payable returns (uint proposalId) {
+                            uint triggerPrice) public returns (uint proposalId) {
 
 
-        //Todo: TokenPair types should be captured and validated
         require(nearLegPrice > farLegPrice);
+        require(ERC20Interface(cashTokenAddress).allowance(msg.sender, this) == vol);
+
+        if (!ERC20Interface(cashTokenAddress).transferFrom(msg.sender, this, vol)) {
+            return 0;
+        }
+
+        proposalCount += 1;
 
         Proposal storage p = proposals[proposalCount];
+        p.cashTokenAddress = cashTokenAddress;
+        p.tokenAddress = tokenAddress;
         p.exists = true;
-        p.proposalId = proposalCount++;
+        p.proposalId = proposalCount;
         p.banker = msg.sender;
-        p.vol = msg.value;
+        p.vol = vol;
         p.term = term * 3600;
         p.nearLegPrice = nearLegPrice;
         p.farLegPrice = farLegPrice;
@@ -75,10 +101,11 @@ contract Badla {
 
     function settleProposal(uint proposalId) public payable returns(bool) {
 
-        Proposal memory p = proposals[proposalId];
+        Proposal storage p = proposals[proposalId];
         require(p.exists);
         require(p.state == 1);
         require(msg.value == p.vol);
+        require(p.player == msg.sender);
 
         tokenBalances[msg.sender] += p.farLegPrice;
         cashBalances[p.banker] += p.vol;
@@ -91,10 +118,11 @@ contract Badla {
 
     function forceCloseOnPrice(uint proposalId) public returns(bool) {
 
-        Proposal memory p = proposals[proposalId];
+        Proposal storage p = proposals[proposalId];
         require(p.exists);
         require(p.state == 1);
         require(currentPrice > p.triggerPrice);
+        require(p.banker == msg.sender);
 
         tokenBalances[p.banker] += p.nearLegPrice;
 
@@ -105,10 +133,11 @@ contract Badla {
 
     function forceCloseOnExpiry(uint proposalId) public returns(bool) {
 
-        Proposal memory p = proposals[proposalId];
+        Proposal storage p = proposals[proposalId];
         require(p.exists);
         require(p.state == 1);
         require(now > p.startTime + p.term);
+        require(p.banker == msg.sender);
 
         tokenBalances[p.banker] += p.nearLegPrice;
 
@@ -118,13 +147,30 @@ contract Badla {
 
     function cancelProposal(uint proposalId) public returns (bool) {
 
-        Proposal memory p = proposals[proposalId];
+        LogBadlaEvent("cancelProposal");
+
+        Proposal storage p = proposals[proposalId];
+
+        LogBadlaEvent("cancelProposal: got the proposla");
+
         require(p.exists);
+
+        LogBadlaEvent("cancelProposal: proposal exists");
+
         require(p.state == 0);
+
+        LogBadlaEvent("cancelProposal: state valid exists");
+
+        require(p.banker == msg.sender);
+
+        LogBadlaEvent("cancelProposal: Only banker can cancel");
 
         cashBalances[p.banker] += p.vol;
 
+        LogBadlaEvent("cancelProposal:cash balance updated");
+
         p.state = 2;
+
         return true;
     }
 
