@@ -2,6 +2,8 @@ import './index.css';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { FormControl, FormGroup, HelpBlock, ControlLabel, Button } from 'react-bootstrap';
+import Web3 from 'web3';
+const web3 = new Web3(window.web3.currentProvider);
 
 class FormInput extends React.Component {
 
@@ -31,7 +33,7 @@ class FormInput extends React.Component {
     }
 
     validateNumber() {
-        return this.state.value.length == 0 || /^\d+$/.test(this.state.value) ? null : "error";
+        return this.state.value.length === 0 || /^\d+$/.test(this.state.value) ? null : "error";
     }
 
     validateEthAddress() {
@@ -59,6 +61,7 @@ class CreateProposalForm extends React.Component {
             'validation' : {}
         };
         this.createProposal = this.createProposal.bind(this);
+        console.log('Has web3 accounts - '+web3.eth.accounts.length);
     }
 
     createProposal() {
