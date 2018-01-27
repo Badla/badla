@@ -36,3 +36,7 @@ ol, ul {
     right: 0;
     font-size: 1.2rem;
 }
+
+.center {
+    margin: 0 auto;
+}
