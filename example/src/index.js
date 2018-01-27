@@ -20,8 +20,9 @@ class FormInput extends React.Component {
     }
 
     onChange(event) {
-        this.setState({value:event.target.value});
-        this.props.onChange(this.props.id, event.target.value, this.getValidationState() == null)
+        this.setState({value:event.target.value}, () => {
+            this.props.onChange(this.props.id, this.state.value, this.getValidationState() == null && this.state.value.length > 0)
+        });
     }
 
     getValidationState() {
@@ -55,21 +56,33 @@ class CreateProposalForm extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            formValid: true
-        }
+            'validation' : {}
+        };
         this.createProposal = this.createProposal.bind(this);
     }
 
     createProposal() {
-        if (!this.state.formValid) {
+        if (!this.isValid()) {
             alert('Sorry please check the inputs!');
         }
     }
 
+    isValid() {
+        if (Object.keys(this.state['validation']).length < 6) {
+            return false;
+        }
+        for (var key in this.state['validation']) {
+            if (!this.state['validation'][key]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     stateChanged(key, value, formValid) {
-        var state = {};
+        var state = this.state;
         state[key] = value;
-        state['formValid'] = this.state['formValid'] && formValid
+        state['validation'][key] = formValid;
         this.setState(state, function() {
             console.log(this.state);
         });
