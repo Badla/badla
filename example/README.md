@@ -1,31 +1,25 @@
-## What is Badla.IO?
+# Badla.IO web based DAPP?
 
-## Install dependencies
+Make sure you are in the `examples` directory
 
-In the examples directory, you can run:
+### Install server dependencies
 
-### `npm install`
+##### `npm install`
 
-## Running Badla.IO web app
 
-In the examples directory, you can run:
+### Install [MetaMask](http://metamask.io) Plugin In Chrome Browser
 
-### `npm start`
+MetaMask is a plugin for Chrome browser. It is a wallet to manage accounts and check balances easily. But also does more -
+* Injects a web3 instance into a web DAPP with preconfigured network as chosen by the user in the plugin.
 
-Runs the app in the development mode.<br>
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+* Intercepts web3 calls and allows transaction signing outside of the DAPP
 
-The page will reload if you make edits.<br>
-You will also see any lint errors in the console.
+### Start web server
 
-### `npm test`
+##### `npm start`
 
-Launches the test runner in the interactive watch mode.<br>
+### Access App
 
-### `npm run build`
-
-Builds the app for production to the `build` folder.<br>
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.<br>
-Your app is ready to be deployed!
+Open [http://localhost:3000](http://localhost:3000) in  chrome browser<br><br>
+The page will reload if you make edits<br>
+You will also see any lint errors in the console
