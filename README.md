@@ -25,16 +25,28 @@ This document explains how to deploy the badla contract and sample tokens for te
 
 ### Development
 
+#### Install Truffle Framework
+
+#### `$ npm install -g truffle`
+
+#### Install MetaMask plugin in Google Chrome
+
+Via this [Extensions Gallery Link](https://chrome.google.com/webstore/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn)
+
 #### Start a node and open a console to it
 
-`$ truffle develop` - It creates a ethereum node and initializes a etherum blockchain. It also opens a `RPC` endpoint for interaction externally from web3 and is used by `MetaMask` plugin. It also opens a `web3` based console.
+#### `$ truffle develop`
+
+It creates a ethereum node and initializes a ethereum blockchain. It also opens a `RPC` endpoint for interaction externally from web3 and is used by `MetaMask` plugin. It also opens a `web3` based console.
 
 #### Compile Badla contract and sample tokens
 
-`truffle(develop)> compile`
+#### `truffle(develop)> compile`
 
 #### Deploy to the truffle development node
-`truffle(develop)> deploy` - If everything goes well, then note the `Badla` and token contract addresses printed on the console.
+#### `truffle(develop)> deploy`
+
+If everything goes well, the `Badla` and token contract addresses are printed on the console. These addresses are needed in the example app for using the Badla system.
 
 ### TestNet
 
