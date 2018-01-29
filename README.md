@@ -10,45 +10,59 @@ This document explains how to deploy the badla contract and sample tokens for te
 
 #### Frameworks and Tools
 
-* [Truffle](http://truffleframework.com) - Used to run a development node, compile and deploy smart contracts
+* [Truffle](http://truffleframework.com) - Used to compile smart contracts in Solidity, connect to a ethereum node via its RPC end point, perform operations (like send ether) and deploy smart contracts.
 
 * [MetaMask](http://metamask.io) - A plugin in Chrome browser. It is a wallet to manage accounts and check balances easily. But also does more -
     * Injects a web3 instance into a web DAPP with preconfigured network as chosen by the user in the plugin.
 
-    * Intercepts web3 calls and allows transaction signing outside of the DAPP
+    * Intercepts web3 calls and allows transaction signing outside of the DAPP.
+
+* `Ganache` - It runs a light node on development blockchain that has a instant miner. Creates accounts with preloaded ether. Starts in no time. Also Truffle and MetaMask have been tested to connect and work with this node without any issues.
 
 #### Alternatives
 
 * `GETH` - MetaMask is a mandatory dependency for the web app and it has issues in connecting to a GETH node as GETH is usually latest and greatest and MetaMask plays catchup.
 
-* `Ganache` or `Ethereum Wallet` - Good to have but not required as the only wallet that matters for the front end is `MetaMask`.
+* `Ethereum Wallet` - Its a wallet. Good to have when the DAPP running on testnets but it does not work with light nodes like Ganache. The only required wallet that matters for the DAPP is `MetaMask`
 
-### Development
+### Install
 
 #### Install Truffle Framework
 
 #### `$ npm install -g truffle`
 
+#### Install Ganache
+
+Via this [link](http://truffleframework.com/ganache/)
+
 #### Install MetaMask plugin in Google Chrome
 
 Via this [Extensions Gallery Link](https://chrome.google.com/webstore/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn)
 
+### Run (Development)
+
+#### Open Ganache via CLI
+
+#### `$ ganache-cli --secure -u 0 -u 1 -u 2`
+
+Starts ganache in a CLI and unlocks few accounts.
+
 #### Start a node and open a console to it
 
-#### `$ truffle develop`
+#### `$ truffle console --network develop`
 
-It creates a ethereum node and initializes a ethereum blockchain. It also opens a `RPC` endpoint for interaction externally from web3 and is used by `MetaMask` plugin. It also opens a `web3` based console.
+It opens a `web3` based console via `RPC` endpoint to ganache.
 
 #### Compile Badla contract and sample tokens
 
 #### `truffle(develop)> compile`
 
 #### Deploy to the truffle development node
-#### `truffle(develop)> deploy`
+#### `truffle(develop)> migrate`
 
 If everything goes well, the `Badla` and token contract addresses are printed on the console. These addresses are needed in the example app for using the Badla system.
 
-### TestNet
+### Run (TestNet)
 
 TBD
 
