@@ -1,5 +1,5 @@
 pragma solidity ^0.4.11; // solhint-disable-line compiler-fixed
-import "./oraclizeAPI_0.5.sol"; // solhint-disable-line
+//import "./oraclizeAPI_0.5.sol"; // solhint-disable-line
 
 
 contract ERC20Interface {
@@ -13,8 +13,8 @@ contract ERC20Interface {
 }
 
 
-contract Badla is usingOraclize {
-//contract Badla {
+//contract Badla is usingOraclize {
+contract Badla {
 
     uint public currentPrice;
 
@@ -183,7 +183,7 @@ contract Badla is usingOraclize {
         return true;
     }
 
-    function __callback(bytes32, string result) public {
+    /*function __callback(bytes32, string result) public {
 
         if (msg.sender != oraclize_cbAddress()) revert();
 
@@ -213,6 +213,6 @@ contract Badla is usingOraclize {
                 result = result * 10 + (c - 48);
             }
         }
-    }
+    }*/
 
 }
