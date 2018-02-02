@@ -1,7 +1,7 @@
 import './index.css';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { FormControl, FormGroup, HelpBlock, ControlLabel, Button } from 'react-bootstrap';
+import { FormControl, FormGroup, HelpBlock, ControlLabel, Button, Panel, Checkbox, Radio } from 'react-bootstrap';
 import Web3 from 'web3';
 const web3 = new Web3(window.web3.currentProvider);
 
@@ -45,9 +45,9 @@ class FormInput extends React.Component {
     render() {
         return (
             <FormGroup validationState={this.getValidationState()}>
-                <ControlLabel>{this.props.label}</ControlLabel>
-                <FormControl type="text" placeholder={this.props.placeholder} id={this.props.id} onChange={this.onChange} />
-                <HelpBlock>{this.props.extraHelp}</HelpBlock>
+                <ControlLabel className={this.props.alignClass}>{this.props.label}</ControlLabel>
+                <FormControl className={this.props.alignClass} type="text" placeholder={this.props.placeholder} id={this.props.id} onChange={this.onChange} />
+                <HelpBlock className={this.props.alignClass}>{this.props.extraHelp}</HelpBlock>
             </FormGroup>
         )
     }
@@ -68,6 +68,7 @@ class CreateProposalForm extends React.Component {
         if (!this.isValid()) {
             alert('Sorry please check the inputs!');
         }
+
     }
 
     isValid() {
@@ -95,12 +96,35 @@ class CreateProposalForm extends React.Component {
         return (
             <div>
                 <h4>Create Proposal</h4>
-                <FormInput validator="address" onChange={this.stateChanged.bind(this)}  id="lendingToken" label="Lending Token" placeholder="Enter the address" extraHelp="This is token address in hexadecimal like 0xABCDE..." />
+                <Panel bsStyle="info">
+                    <Panel.Heading>Token Selection</Panel.Heading>
+                    <Panel.Body>
+                        <div className="half left"><FormInput alignClass="rightAlign" validator="address" onChange={this.stateChanged.bind(this)} id="lendingToken" label="Lending Token" placeholder="Enter Token Address" extraHelp="A ERC20 Token Address like 0xAbd123..." /></div>
+                        <div className="half right"><FormInput validator="address" onChange={this.stateChanged.bind(this)} id="desiredToken" label="Desired Token" placeholder="Enter Token Name" extraHelp="A ERC20 Token Address like 0xAbd123..." /></div>
+                    </Panel.Body>
+                </Panel>
+                <Panel bsStyle="success">
+                    <Panel.Heading>Exchange Rates</Panel.Heading>
+                    <Panel.Body>
+                        <div className="half left"><FormInput alignClass="rightAlign" validator="number" onChange={this.stateChanged.bind(this)} id="price" label="Price" placeholder="Enter the price" extraHelp="For 1 lending token. Ex: 2000" /></div>
+                        <div className="half right"><FormInput validator="number" onChange={this.stateChanged.bind(this)} id="returnPrice" label="Return Price" placeholder="Enter the return price" extraHelp="For 1 lending token after contract term ends. Ex: 1800" /></div>
+                    </Panel.Body>
+                </Panel>
                 <FormInput validator="number" onChange={this.stateChanged.bind(this)} id="lendingQuantity" label="Lending Quantity" placeholder="Enter the quantity" extraHelp="Ex: 20" />
-                <FormInput validator="address" onChange={this.stateChanged.bind(this)} id="desiredToken" label="Desired Token" placeholder="Enter the address" extraHelp="This is token address in hexadecimal like 0xABCDE..." />
                 <FormInput validator="number" onChange={this.stateChanged.bind(this)} id="term" label="Term" placeholder="Enter the term in days" extraHelp="Ex: 15" />
-                <FormInput validator="number" onChange={this.stateChanged.bind(this)} id="rate" label="Rate" placeholder="Enter the rate" extraHelp="How many desired tokens for 1 lending token" />
-                <FormInput validator="number" onChange={this.stateChanged.bind(this)} id="returnRate" label="Return Rate" placeholder="Enter the return rate" extraHelp="How many desired tokens for 1 lending token after contract term ends" />
+                <Checkbox>
+                    Trigger Forced Settlement
+                </Checkbox>
+                <Panel bsStyle="warning">
+                    <Panel.Heading>Forced Settlement Details</Panel.Heading>
+                    <Panel.Body>
+                        <FormGroup>
+                            <Radio name="radioGroup" inline checked>Above</Radio>{' '}
+                            <Radio name="radioGroup" inline>Below</Radio>{' '}
+                        </FormGroup>
+                        <FormInput onChange={this.stateChanged.bind(this)} id="priceUrl" label="Price URL" placeholder="http://..." extraHelp="" />
+                    </Panel.Body>
+                </Panel>
                 <Button bsStyle="primary" onClick={this.createProposal}>Create</Button>
             </div>
         )
