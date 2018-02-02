@@ -24,6 +24,11 @@ ol, ul {
     height: 100%;
 }
 
+#content {
+    width: 50%;
+    margin: 0 auto;
+}
+
 .main {
     height: 100%;
 }

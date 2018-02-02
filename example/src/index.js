@@ -58,7 +58,8 @@ class CreateProposalForm extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            'validation' : {}
+            'validation' : {},
+            'showForceSettlementInfo' : false
         };
         this.createProposal = this.createProposal.bind(this);
         console.log('Has web3 accounts - '+web3.eth.accounts.length);
@@ -92,30 +93,29 @@ class CreateProposalForm extends React.Component {
         });
     }
 
+    toggleForceSettlementInfo(event) {
+        this.setState({showForceSettlementInfo:event.target.checked})
+    }
+
     render() {
         return (
             <div>
-                <h4>Create Proposal</h4>
-                <Panel bsStyle="info">
-                    <Panel.Heading>Token Selection</Panel.Heading>
-                    <Panel.Body>
-                        <div className="half left"><FormInput alignClass="rightAlign" validator="address" onChange={this.stateChanged.bind(this)} id="lendingToken" label="Lending Token" placeholder="Enter Token Address" extraHelp="A ERC20 Token Address like 0xAbd123..." /></div>
-                        <div className="half right"><FormInput validator="address" onChange={this.stateChanged.bind(this)} id="desiredToken" label="Desired Token" placeholder="Enter Token Name" extraHelp="A ERC20 Token Address like 0xAbd123..." /></div>
-                    </Panel.Body>
-                </Panel>
-                <Panel bsStyle="success">
-                    <Panel.Heading>Exchange Rates</Panel.Heading>
-                    <Panel.Body>
-                        <div className="half left"><FormInput alignClass="rightAlign" validator="number" onChange={this.stateChanged.bind(this)} id="price" label="Price" placeholder="Enter the price" extraHelp="For 1 lending token. Ex: 2000" /></div>
-                        <div className="half right"><FormInput validator="number" onChange={this.stateChanged.bind(this)} id="returnPrice" label="Return Price" placeholder="Enter the return price" extraHelp="For 1 lending token after contract term ends. Ex: 1800" /></div>
-                    </Panel.Body>
-                </Panel>
+                <h3>Create Proposal</h3>
+                <br></br><br></br>
+                <div>
+                    <div className="half left"><FormInput alignClass="rightAlign" validator="address" onChange={this.stateChanged.bind(this)} id="lendingToken" label="Lending Token" placeholder="Enter Token Address" extraHelp="A ERC20 Token Address like 0xAbd123..." /></div>
+                    <div className="half right"><FormInput validator="address" onChange={this.stateChanged.bind(this)} id="desiredToken" label="Desired Token" placeholder="Enter Token Name" extraHelp="A ERC20 Token Address like 0xAbd123..." /></div>
+                </div>
+                <div>
+                    <div className="half left"><FormInput alignClass="rightAlign" validator="number" onChange={this.stateChanged.bind(this)} id="price" label="Price" placeholder="Enter the price" extraHelp="For 1 lending token. Ex: 2000" /></div>
+                    <div className="half right"><FormInput validator="number" onChange={this.stateChanged.bind(this)} id="returnPrice" label="Return Price" placeholder="Enter the return price" extraHelp="For 1 lending token after contract term ends. Ex: 1800" /></div>
+                </div>
                 <FormInput validator="number" onChange={this.stateChanged.bind(this)} id="lendingQuantity" label="Lending Quantity" placeholder="Enter the quantity" extraHelp="Ex: 20" />
                 <FormInput validator="number" onChange={this.stateChanged.bind(this)} id="term" label="Term" placeholder="Enter the term in days" extraHelp="Ex: 15" />
-                <Checkbox>
+                <Checkbox onChange={this.toggleForceSettlementInfo.bind(this)}>
                     Trigger Forced Settlement
                 </Checkbox>
-                <Panel bsStyle="warning">
+                { this.state.showForceSettlementInfo ? <Panel bsStyle="warning" ref="forceSettlementInfo">
                     <Panel.Heading>Forced Settlement Details</Panel.Heading>
                     <Panel.Body>
                         <FormGroup>
@@ -124,7 +124,7 @@ class CreateProposalForm extends React.Component {
                         </FormGroup>
                         <FormInput onChange={this.stateChanged.bind(this)} id="priceUrl" label="Price URL" placeholder="http://..." extraHelp="" />
                     </Panel.Body>
-                </Panel>
+                </Panel> : null }
                 <Button bsStyle="primary" onClick={this.createProposal}>Create</Button>
             </div>
         )
