@@ -24,6 +24,12 @@ class FormInput extends React.Component {
         });
     }
 
+    componentDidMount() {
+        if (this.props.value) {
+            this.onChange({target:{value:this.props.value}})
+        }
+    }
+
     getValidationState() {
         var validator = this.props.validator || "nothingValidator";
         return this.validators[validator]();

@@ -21,6 +21,26 @@ class CreateProposalForm extends React.Component {
         console.log('Has web3 accounts - '+web3.eth.accounts.length);
     }
 
+    getBlock(cb) {
+        web3.eth.getBlock('latest', function(err, res) {
+            if (err) {
+                alert('Could not get latest block');
+                return;
+            }
+            cb(res.gasLimit)
+        })
+    }
+
+    getGasPrice(cb) {
+        web3.eth.getGasPrice(function(err, res) {
+            if (err) {
+                alert('Could not get gas price');
+                return;
+            }
+            cb(res.toString(10))
+        })
+    }
+
     createProposal() {
         let valid = true; //this.isValid()
         this.setState({'valid':valid})
@@ -33,13 +53,16 @@ class CreateProposalForm extends React.Component {
         var DWETHToken = ERCXTokenContract.at(WETHAddress);
         var ERCXToken = ERCXTokenContract.at(ER20TokenAddress);
         var Badla = BadlaContract.at(BadlaAddress);
-        var price = 2000;
-        var returnPrice = 1800;
-        var term = 20;
-        let lendingQuantity = web3.toWei(10)
+        var price = this.state.price;
+        var returnPrice = this.state.returnPrice;
+        var term = this.state.term;
+        let quantity = web3.toWei(this.state.quantity);
+        let triggerPrice = this.state.forceSettlement ? this.state.triggerPrice : returnPrice;
 
+        let account = web3.eth.accounts[0];
+        // let gas = web3.eth.getBlock('latest').gasLimit;
         console.log("Approving token from - "+web3.eth.accounts[0])
-        DWETHToken.approve(BadlaAddress, lendingQuantity, {from:web3.eth.accounts[0]}, function(err, res) {
+        DWETHToken.approve(BadlaAddress, quantity, {from:account}, function(err, res) {
             if (err) {
                 alert("error in approving token");
                 console.log(err);
@@ -51,7 +74,7 @@ class CreateProposalForm extends React.Component {
                 console.log("Badla Log: "+JSON.stringify(arguments));
             });
             setTimeout(()=> {
-                Badla.createProposal(WETHAddress, lendingQuantity, ER20TokenAddress, price, term, returnPrice, returnPrice, {from:web3.eth.accounts[0]}, function(err, res) {
+                Badla.createProposal(WETHAddress, quantity, ER20TokenAddress, price, term, returnPrice, triggerPrice, {from:account}, function(err, res) {
                     if (err) {
                         alert("error in creating proposal");
                         console.log(err);
@@ -66,7 +89,7 @@ class CreateProposalForm extends React.Component {
     }
 
     isValid() {
-        var totalInputs = 6 + (this.state.forceSettlement ? 1 : 0)
+        var totalInputs = 6 + (this.state.forceSettlement ? 2 : 0)
         if (Object.keys(this.state['validation']).length < totalInputs) {
             return false;
         }
@@ -115,16 +138,19 @@ class CreateProposalForm extends React.Component {
                         </Button>
                       </p>
                     </Alert> : null }
-
                 <div className="clear">
                     <div className="half left"><FormInput alignClass="rightAlign" validator="address" onChange={this.stateChanged.bind(this)} id="lendingToken" label="Lending Token" value={WETHAddress} placeholder="Enter Token Address" extraHelp="A ERC20 Token Address like 0xAbd123..." /></div>
                     <div className="half right"><FormInput validator="address" onChange={this.stateChanged.bind(this)} id="desiredToken" label="Desired Token" value={ER20TokenAddress} placeholder="Enter Token Name" extraHelp="A ERC20 Token Address like 0xAbd123..." /></div>
                 </div>
+                <FormGroup>
+                    <Radio name="radioGroup" inline>Repo</Radio>{' '}
+                    <Radio name="radioGroup" inline checked>Reverse Repo</Radio>{' '}
+                </FormGroup>
                 <div>
                     <div className="half left"><FormInput alignClass="rightAlign" validator="number" onChange={this.stateChanged.bind(this)} id="price" label="Price" value="2000" placeholder="Enter the price" extraHelp="For 1 lending token. Ex: 2000" /></div>
                     <div className="half right"><FormInput validator="number" onChange={this.stateChanged.bind(this)} id="returnPrice" label="Return Price" value="1800" placeholder="Enter the return price" extraHelp="For 1 lending token after contract term ends. Ex: 1800" /></div>
                 </div>
-                <FormInput validator="number" onChange={this.stateChanged.bind(this)} id="lendingQuantity" label="Lending Quantity" value="20" placeholder="Enter the quantity" extraHelp="Ex: 20" />
+                <FormInput validator="number" onChange={this.stateChanged.bind(this)} id="quantity" label="Quantity" value="20" placeholder="Enter the quantity" extraHelp="Ex: 20" />
                 <FormInput validator="number" onChange={this.stateChanged.bind(this)} id="term" label="Term" value="20" placeholder="Enter the term in days" extraHelp="Ex: 15" />
                 <Checkbox onChange={this.toggleForceSettlementInfo.bind(this)}>
                     Trigger Forced Settlement
@@ -132,10 +158,7 @@ class CreateProposalForm extends React.Component {
                 { this.state.forceSettlement ? <Panel bsStyle="warning" ref="forceSettlementInfo">
                     <Panel.Heading>Forced Settlement Details</Panel.Heading>
                     <Panel.Body>
-                        <FormGroup>
-                            <Radio name="radioGroup" inline checked>Above</Radio>{' '}
-                            <Radio name="radioGroup" inline>Below</Radio>{' '}
-                        </FormGroup>
+                        <FormInput validator="number" onChange={this.stateChanged.bind(this)} id="triggerPrice" label="Trigger Price" value="2000" placeholder="Enter the trigger price" extraHelp="Ex: 2000" />
                         <FormInput onChange={this.stateChanged.bind(this)} validator="url" id="priceUrl" label="Price URL" placeholder="http://..." extraHelp="" />
                     </Panel.Body>
                 </Panel> : null }
