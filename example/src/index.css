@@ -25,8 +25,14 @@ ol, ul {
 }
 
 #content {
-    width: 50%;
+    width: 70%;
     margin: 0 auto;
+}
+
+.right-align {
+    margin-top: -0.7rem;
+    margin-right: -1.1rem;
+    float: right;
 }
 
 .main {
@@ -61,4 +67,8 @@ ol, ul {
 .rightAlign {
     text-align: right;
     width: 100%;
+}
+
+.clear {
+    clear: both;
 }
