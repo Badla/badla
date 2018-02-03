@@ -42,7 +42,7 @@ class CreateProposalForm extends React.Component {
     }
 
     createProposal() {
-        let valid = true; //this.isValid()
+        let valid = this.isValid()
         this.setState({'valid':valid})
         if (!valid) {
             return;

@@ -50,10 +50,11 @@ class FormInput extends React.Component {
     }
 
     render() {
+        let value = this.state.value || this.state.value == '' ? this.state.value : this.props.value
         return (
             <FormGroup validationState={this.getValidationState()}>
                 <ControlLabel className={this.props.alignClass}>{this.props.label}</ControlLabel>
-                <FormControl className={this.props.alignClass} type="text" placeholder={this.props.placeholder} value={this.props.value} id={this.props.id} onChange={this.onChange}></FormControl>
+                <FormControl className={this.props.alignClass} type="text" placeholder={this.props.placeholder} value={value} id={this.props.id} onChange={this.onChange}></FormControl>
                 <HelpBlock className={this.props.alignClass}>{this.props.extraHelp}</HelpBlock>
             </FormGroup>
         )
