@@ -3,6 +3,7 @@ import { FormControl, FormGroup, HelpBlock, ControlLabel, Button, Panel, Checkbo
 import FormInput from './form-input'
 import ABI from './abi'
 import Web3 from 'web3';
+import Transaction from './transaction'
 const web3 = new Web3(window.web3.currentProvider);
 
 var BadlaAddress = "0xcf1e41f0a237e212da34ebc86444cbae34d73e23"
@@ -11,6 +12,8 @@ var ER20TokenAddress = "0x70fa3b8c49c0cd61bdf063978d090749ab567239"
 
 class CreateProposalForm extends React.Component {
 
+    transaction : Transaction
+
     constructor(props) {
         super(props);
         this.state = {
@@ -18,6 +21,7 @@ class CreateProposalForm extends React.Component {
             'valid': true,
             'forceSettlement' : false
         };
+        this.transaction = new Transaction(window.web3.currentProvider);
         console.log('Has web3 accounts - '+web3.eth.accounts.length);
     }
 
@@ -68,23 +72,29 @@ class CreateProposalForm extends React.Component {
                 console.log(err);
                 return;
             }
-            console.log("Approved - "+res)
-            var logEvent = Badla.LogBadlaEvent({},{fromBlock: 0, toBlock: 'latest'});
-            logEvent.watch(function(error, result){
-                console.log("Badla Log: "+JSON.stringify(arguments));
-            });
-            setTimeout(()=> {
+
+            console.log("Approval Submitted - "+res);
+            this.transaction.waitUntilMined(res).then(function() {
+                console.log("Approved")
+                var logEvent = Badla.LogBadlaEvent({},{fromBlock: 0, toBlock: 'latest'});
+                logEvent.watch(function(error, result){
+                    console.log("Badla Log: "+JSON.stringify(arguments));
+                });
+                console.log("Creating Proposal")
                 Badla.createProposal(WETHAddress, quantity, ER20TokenAddress, price, term, returnPrice, triggerPrice, {from:account}, function(err, res) {
                     if (err) {
                         alert("error in creating proposal");
                         console.log(err);
                         return;
                     }
-                    alert("Proposal created")
-                    console.log("Proposal created - "+res)
-                })
-            }, 3000)
-        })
+                    console.log("Proposal Creation Submitted - "+res);
+                    this.transaction.waitUntilMined(res).then(function() {
+                        console.log("Proposal created");
+                        alert("Proposal created");
+                    })
+                }.bind(this))
+            }.bind(this));
+        }.bind(this))
         // Make a json and show
     }
 
