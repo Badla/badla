@@ -56,7 +56,7 @@ class CreateProposalForm extends React.Component {
         var price = this.state.price;
         var returnPrice = this.state.returnPrice;
         var term = this.state.term;
-        let quantity = web3.toWei(this.state.quantity);
+        let quantity = this.state.quantity;
         let triggerPrice = this.state.forceSettlement ? this.state.triggerPrice : returnPrice;
         let tokenId = Math.floor(Math.random() * 1000)
         let account = web3.eth.accounts[0];
