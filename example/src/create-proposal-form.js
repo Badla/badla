@@ -1,5 +1,5 @@
 import React from 'react';
-import { FormControl, FormGroup, HelpBlock, ControlLabel, Button, Panel, Checkbox, Radio, Alert, Glyphicon } from 'react-bootstrap';
+import { ProgressBar, Modal, FormControl, FormGroup, HelpBlock, ControlLabel, Button, Panel, Checkbox, Radio, Alert, Glyphicon } from 'react-bootstrap';
 import FormInput from './form-input'
 import ABI from './abi'
 import Web3 from 'web3';
@@ -41,12 +41,23 @@ class CreateProposalForm extends React.Component {
         })
     }
 
+    setProposalCreatingState(props) {
+        props["msgClass"] = props["msgClass"] || "createSuccess";
+        var creatingProposal = this.state.creatingProposal || {};
+        for (var key in props) {
+            creatingProposal[key] = props[key];
+        }
+        this.setState({"creatingProposal":creatingProposal});
+    }
+
     createProposal() {
         let valid = this.isValid()
         this.setState({'valid':valid})
         if (!valid) {
             return;
         }
+
+        this.setProposalCreatingState({progress:10, msg:"Waiting for token approval"});
         //Allocate of dweth tokens to badla contract
         var BadlaContract = web3.eth.contract(ABI.BadlaABI);
         var ERCXTokenContract = web3.eth.contract(ABI.ERCXTokenABI);
@@ -64,13 +75,15 @@ class CreateProposalForm extends React.Component {
         console.log("Approving token from - "+web3.eth.accounts[0])
         WETHToken.approve(ABI.BadlaAddress, quantity, {from:account}, function(err, res) {
             if (err) {
-                alert("error in approving token");
+                this.setProposalCreatingState({done:true, progress:100, msg:"Could not get tokens", msgClass:"createError"});
                 console.log(err);
                 return;
             }
             console.log("Approval Submitted - "+res);
+            this.setProposalCreatingState({progress:30, msg:"Received token approval. Transferring..."});
             this.transaction.waitUntilMined(res).then(function() {
                 console.log("Approved")
+                this.setProposalCreatingState({progress:70, msg:"Received tokens. Creating proposal..."});
                 var logEvent = Badla.LogBadlaEvent({},{fromBlock: 0, toBlock: 'latest'});
                 logEvent.watch(function(error, result){
                     console.log("Badla Log: "+JSON.stringify(arguments));
@@ -78,22 +91,23 @@ class CreateProposalForm extends React.Component {
                 console.log("Creating Proposal - "+tokenId)
                 Badla.createProposal(tokenId, ABI.WETHTokenAddress, quantity, ABI.ERCXTokenAddress, price, term, returnPrice, triggerPrice, {from:account}, function(err, res) {
                     if (err) {
-                        alert("error in creating proposal");
+                        this.setProposalCreatingState({done:true, progress:100, msg:"Could not create proposal", msgClass:"createError"});
                         console.log(err);
                         return;
                     }
                     console.log("Proposal Creation Submitted - "+res);
+                    this.setProposalCreatingState({progress:90, msg:"Creating proposal. Verifying..."});
                     this.transaction.waitUntilMined(res).then(function() {
                         Badla.tokenToProposalIds(tokenId, function(err, res) {
                             if (err) {
-                                alert("error in fetching proposal id for tokenId - "+tokenId);
+                                this.setProposalCreatingState({done:true, progress:100, msg:"Proposal is created but could not fetch id. Token Id - \""+tokenId+"\"", msgClass:"createError"});
                                 console.log(err);
                                 return;
                             }
+                            this.setProposalCreatingState({done:true, progress:100, msg:"Proposal created with id - \""+res+"\""});
                             console.log("Proposal created - "+res);
-                            alert("Proposal created - "+res);
-                        });
-                    })
+                        }.bind(this));
+                    }.bind(this))
                 }.bind(this))
             }.bind(this));
         }.bind(this))
@@ -130,6 +144,12 @@ class CreateProposalForm extends React.Component {
                 this.setState(newState)
             }
         })
+    }
+
+    creatingProposalComplete() {
+        let newState = Object.assign({}, this.state)
+        newState.creatingProposal = null
+        this.setState(newState)
     }
 
     dismissAlert() {
@@ -176,6 +196,29 @@ class CreateProposalForm extends React.Component {
                     <Radio className="marginRightRadio" name="radioGroup" inline>Repo</Radio>{' '}
                     <Radio name="radioGroup" inline defaultChecked>Reverse Repo</Radio>{' '}
                 </FormGroup>
+                {this.state.creatingProposal ?
+                    <Modal.Dialog>
+                        <Modal.Header>
+                            <Modal.Title>Creating Proposal...</Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body>
+                            <div className={this.state.creatingProposal.msgClass}>{this.state.creatingProposal.msg}</div>
+                            <br></br>
+                            {this.state.creatingProposal.done ?
+                                this.state.creatingProposal.msgClass === "createError" ?
+                                    <ProgressBar bsStyle="danger" now={this.state.creatingProposal.progress} />
+                                    :
+                                    <ProgressBar bsStyle="success" now={this.state.creatingProposal.progress} />
+                                :
+                                <ProgressBar striped bsStyle="info" now={this.state.creatingProposal.progress} />
+                            }
+                        </Modal.Body>
+                        { this.state.creatingProposal.done ?
+                        <Modal.Footer>
+                            <Button bsStyle="primary" onClick={this.creatingProposalComplete.bind(this)}>Close</Button>
+                        </Modal.Footer> : "" }
+                    </Modal.Dialog>
+                    : null }
                 <FormInput validator="number" onChange={this.stateChanged.bind(this)} id="quantity" label="Quantity" value="20" placeholder="Enter the quantity" extraHelp="Ex: 20" />
                 <FormInput validator="number" onChange={this.stateChanged.bind(this)} id="term" label="Term" value="20" placeholder="Enter the term in days" extraHelp="Ex: 15" />
                 <Checkbox onChange={this.toggleForceSettlementInfo.bind(this)}>

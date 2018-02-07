@@ -41,12 +41,12 @@ class FetchProposalForm extends React.Component {
                 return;
             }
             if (!res[0]) {
-                this.setState({proposal:{status:"Not Found"}})
+                this.setState({proposal:{status:"not-found",msg:"Proposal "+proposalId+" not found"}})
                 console.log("Proposal not found");
                 return;
             }
             console.log(res);
-            this.setState({proposal:{status:"Found", data:JSON.stringify(res, null, 4)}})
+            this.setState({proposal:{status:"found", msg:"Proposal "+proposalId+" details below - ", data:JSON.stringify(res, null, 4)}})
         }.bind(this))
         // Make a json and show
     }
@@ -95,14 +95,16 @@ class FetchProposalForm extends React.Component {
                     <FormInput validator="number" onChange={this.stateChanged.bind(this)} id="proposalId" label="Proposal ID" placeholder="Enter Proposal Id" extraHelp="" />
                 </div>
                 <Button bsStyle="primary" onClick={this.fetchProposal.bind(this)}>Fetch</Button>
+                <br></br><br></br>
                 { this.state.proposal ?
-                    <div>
-                        <br></br>
-                        {this.state.proposal.status}
-                    </div>
+                    <Alert bsStyle={this.state.proposal.status == 'found' ? "success" : "danger"} onDismiss={this.handleDismiss}>
+                      <p>
+                        {this.state.proposal.msg}
+                      </p>
+                    </Alert>
                 : null }
                 { this.state.proposal && this.state.proposal.data ?
-                <div>    <br></br>
+                <div>
                     <pre>{this.state.proposal.data}</pre></div>
                 : null }
             </div>
