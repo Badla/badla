@@ -40,13 +40,15 @@ contract Badla {
     }
 
     mapping(uint => Proposal) public proposals;
+    mapping(uint => uint) public tokenToProposalIds;
     mapping(address => mapping(address => uint)) public pendingReturns;
 
     uint public proposalCount;
 
     event LogBadlaEvent(string description);
 
-    function createProposal(address cashTokenAddress,
+    function createProposal(uint token,
+                            address cashTokenAddress,
                             uint vol,
                             address tokenAddress,
                             uint nearLegPrice,
@@ -76,6 +78,8 @@ contract Badla {
         p.farLegPrice = farLegPrice;
         p.triggerPrice = triggerPrice;
         p.state = 0;
+
+        tokenToProposalIds[token] = p.proposalId;
 
         return p.proposalId;
     }

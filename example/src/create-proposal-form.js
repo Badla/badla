@@ -6,10 +6,6 @@ import Web3 from 'web3';
 import Transaction from './transaction'
 const web3 = new Web3(window.web3.currentProvider);
 
-var BadlaAddress = "0xcf1e41f0a237e212da34ebc86444cbae34d73e23"
-var WETHAddress = "0x0807d5dfebe8733df50b236944b18cccfce06500"
-var ER20TokenAddress = "0x70fa3b8c49c0cd61bdf063978d090749ab567239"
-
 class CreateProposalForm extends React.Component {
 
     transaction : Transaction
@@ -52,27 +48,26 @@ class CreateProposalForm extends React.Component {
             return;
         }
         //Allocate of dweth tokens to badla contract
-        var ERCXTokenContract = web3.eth.contract(ABI.ERCXTokenABI);
         var BadlaContract = web3.eth.contract(ABI.BadlaABI);
-        var DWETHToken = ERCXTokenContract.at(WETHAddress);
-        var ERCXToken = ERCXTokenContract.at(ER20TokenAddress);
-        var Badla = BadlaContract.at(BadlaAddress);
+        var ERCXTokenContract = web3.eth.contract(ABI.ERCXTokenABI);
+        var Badla = BadlaContract.at(ABI.BadlaAddress);
+        var WETHToken = ERCXTokenContract.at(ABI.WETHTokenAddress);
+
         var price = this.state.price;
         var returnPrice = this.state.returnPrice;
         var term = this.state.term;
         let quantity = web3.toWei(this.state.quantity);
         let triggerPrice = this.state.forceSettlement ? this.state.triggerPrice : returnPrice;
-
+        let tokenId = Math.floor(Math.random() * 1000)
         let account = web3.eth.accounts[0];
         // let gas = web3.eth.getBlock('latest').gasLimit;
         console.log("Approving token from - "+web3.eth.accounts[0])
-        DWETHToken.approve(BadlaAddress, quantity, {from:account}, function(err, res) {
+        WETHToken.approve(ABI.BadlaAddress, quantity, {from:account}, function(err, res) {
             if (err) {
                 alert("error in approving token");
                 console.log(err);
                 return;
             }
-
             console.log("Approval Submitted - "+res);
             this.transaction.waitUntilMined(res).then(function() {
                 console.log("Approved")
@@ -80,17 +75,18 @@ class CreateProposalForm extends React.Component {
                 logEvent.watch(function(error, result){
                     console.log("Badla Log: "+JSON.stringify(arguments));
                 });
-                console.log("Creating Proposal")
-                Badla.createProposal(WETHAddress, quantity, ER20TokenAddress, price, term, returnPrice, triggerPrice, {from:account}, function(err, res) {
+                console.log("Creating Proposal - "+tokenId)
+                Badla.createProposal(tokenId, ABI.WETHTokenAddress, quantity, ABI.ERCXTokenAddress, price, term, returnPrice, triggerPrice, {from:account}, function(err, res) {
                     if (err) {
                         alert("error in creating proposal");
+                        // alert("Proposal created - "+1);
                         console.log(err);
                         return;
                     }
                     console.log("Proposal Creation Submitted - "+res);
                     this.transaction.waitUntilMined(res).then(function() {
-                        console.log("Proposal created");
-                        alert("Proposal created");
+                        console.log("Proposal created - "+Badla.tokenToProposalIds(tokenId));
+                        alert("Proposal created - "+Badla.tokenToProposalIds(tokenId));
                     })
                 }.bind(this))
             }.bind(this));
@@ -138,7 +134,7 @@ class CreateProposalForm extends React.Component {
         return (
             <div>
                 <h3>Create Proposal</h3>
-                <br></br><br></br>
+                <br></br>
                 { !this.state.valid ?
                     <Alert bsStyle="danger" onDismiss={this.handleDismiss}>
                       <p>
@@ -148,18 +144,32 @@ class CreateProposalForm extends React.Component {
                         </Button>
                       </p>
                     </Alert> : null }
-                <div className="clear">
-                    <div className="half left"><FormInput alignClass="rightAlign" validator="address" onChange={this.stateChanged.bind(this)} id="lendingToken" label="Lending Token" value={WETHAddress} placeholder="Enter Token Address" extraHelp="A ERC20 Token Address like 0xAbd123..." /></div>
-                    <div className="half right"><FormInput validator="address" onChange={this.stateChanged.bind(this)} id="desiredToken" label="Desired Token" value={ER20TokenAddress} placeholder="Enter Token Name" extraHelp="A ERC20 Token Address like 0xAbd123..." /></div>
+                <div className="clear hidden">
+                    <div className="half left"><FormInput alignClass="rightAlign" validator="address" onChange={this.stateChanged.bind(this)} id="lendingToken" label="Lending Token" value={ABI.WETHTokenAddress} placeholder="Enter Token Address" extraHelp="A ERC20 Token Address like 0xAbd123..." /></div>
+                    <div className="half right"><FormInput validator="address" onChange={this.stateChanged.bind(this)} id="desiredToken" label="Desired Token" value={ABI.ERCXTokenAddress} placeholder="Enter Token Name" extraHelp="A ERC20 Token Address like 0xAbd123..." /></div>
                 </div>
-                <FormGroup>
-                    <Radio name="radioGroup" inline>Repo</Radio>{' '}
-                    <Radio name="radioGroup" inline checked>Reverse Repo</Radio>{' '}
-                </FormGroup>
+                <div>
+                    <div className="half left">
+                        <ControlLabel className="rightAlign">Lending Token</ControlLabel>
+                        <div className="rightAlign tokenName">
+                            WETH
+                        </div>
+                    </div>
+                    <div className="half right">
+                        <ControlLabel>
+                            Desired Token
+                        </ControlLabel>
+                        <div className="tokenName">ERCX</div>
+                    </div>
+                </div>
                 <div>
                     <div className="half left"><FormInput alignClass="rightAlign" validator="number" onChange={this.stateChanged.bind(this)} id="price" label="Price" value="2000" placeholder="Enter the price" extraHelp="For 1 lending token. Ex: 2000" /></div>
                     <div className="half right"><FormInput validator="number" onChange={this.stateChanged.bind(this)} id="returnPrice" label="Return Price" value="1800" placeholder="Enter the return price" extraHelp="For 1 lending token after contract term ends. Ex: 1800" /></div>
                 </div>
+                <FormGroup>
+                    <Radio className="marginRightRadio" name="radioGroup" inline>Repo</Radio>{' '}
+                    <Radio name="radioGroup" inline defaultChecked>Reverse Repo</Radio>{' '}
+                </FormGroup>
                 <FormInput validator="number" onChange={this.stateChanged.bind(this)} id="quantity" label="Quantity" value="20" placeholder="Enter the quantity" extraHelp="Ex: 20" />
                 <FormInput validator="number" onChange={this.stateChanged.bind(this)} id="term" label="Term" value="20" placeholder="Enter the term in days" extraHelp="Ex: 15" />
                 <Checkbox onChange={this.toggleForceSettlementInfo.bind(this)}>

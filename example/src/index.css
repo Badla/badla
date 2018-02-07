@@ -25,8 +25,30 @@ ol, ul {
 }
 
 #content {
-    width: 70%;
+    /* width: 70%; */
     margin: 0 auto;
+}
+
+.fullHeight {
+    height: 100%;
+}
+
+.nav {
+    margin-top: 1.7rem;
+    width: 170px;
+    float: left;
+    height: 550px;
+    border-right: 1px solid grey
+}
+
+.fullWidth {
+    width: 100%;
+}
+
+.page {
+    padding-left: 4rem;
+    float: left;
+    width: 60%;
 }
 
 .right-align {
@@ -40,10 +62,12 @@ ol, ul {
 }
 
 .footer {
+    clear: both;
     bottom: 0.1rem;
     text-align: center;
     left: 0;
     right: 0;
+    padding-top: 2rem;
     font-size: 1.2rem;
 }
 
@@ -71,4 +95,27 @@ ol, ul {
 
 .clear {
     clear: both;
+}
+
+.hidden {
+    display: none;
+}
+
+.tokenName {
+    font-size: 25px;
+}
+
+input[type=radio], input[type=checkbox] {
+    /* margin-top: 20px; */
+    /* margin-right: 10px; */
+}
+
+.marginRightRadio {
+    /* margin-right: 20px; */
+}
+
+.iconButton {
+    height: 20px;
+    width: 50px;
+    margin-top: -13.5px;
 }
