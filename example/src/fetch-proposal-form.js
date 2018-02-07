@@ -40,13 +40,13 @@ class FetchProposalForm extends React.Component {
                 console.log(err);
                 return;
             }
-            if (!res[0] && proposalId != 1) {
+            if (!res[0]) {
                 this.setState({proposal:{status:"Not Found"}})
                 console.log("Proposal not found");
                 return;
             }
             console.log(res);
-            this.setState({proposal:{status:"Found"}})
+            this.setState({proposal:{status:"Found", data:JSON.stringify(res, null, 4)}})
         }.bind(this))
         // Make a json and show
     }
@@ -100,6 +100,10 @@ class FetchProposalForm extends React.Component {
                         <br></br>
                         {this.state.proposal.status}
                     </div>
+                : null }
+                { this.state.proposal && this.state.proposal.data ?
+                <div>    <br></br>
+                    <pre>{this.state.proposal.data}</pre></div>
                 : null }
             </div>
         )

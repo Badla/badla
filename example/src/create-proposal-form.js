@@ -79,14 +79,20 @@ class CreateProposalForm extends React.Component {
                 Badla.createProposal(tokenId, ABI.WETHTokenAddress, quantity, ABI.ERCXTokenAddress, price, term, returnPrice, triggerPrice, {from:account}, function(err, res) {
                     if (err) {
                         alert("error in creating proposal");
-                        // alert("Proposal created - "+1);
                         console.log(err);
                         return;
                     }
                     console.log("Proposal Creation Submitted - "+res);
                     this.transaction.waitUntilMined(res).then(function() {
-                        console.log("Proposal created - "+Badla.tokenToProposalIds(tokenId));
-                        alert("Proposal created - "+Badla.tokenToProposalIds(tokenId));
+                        Badla.tokenToProposalIds(tokenId, function(err, res) {
+                            if (err) {
+                                alert("error in fetching proposal id for tokenId - "+tokenId);
+                                console.log(err);
+                                return;
+                            }
+                            console.log("Proposal created - "+res);
+                            alert("Proposal created - "+res);
+                        });
                     })
                 }.bind(this))
             }.bind(this));
