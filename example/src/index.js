@@ -7,14 +7,10 @@ import { BrowserRouter, Link, Route } from 'react-router-dom'
 import { Nav, NavItem } from 'react-bootstrap';
 
 const App = () => (
-    <div className="fullHeight">
+    <div className="fullHeight main">
         <Nav>
-            <NavItem eventKey={1} href="#">
-                <Link to="/create">Create Proposal</Link>
-            </NavItem>
-            <NavItem eventKey={2} href="#">
-                <Link to="/fetch">Find Proposal</Link>
-            </NavItem>
+            <div className="navitem"><Link to="/create">Create Proposal</Link></div>
+            <div className="navitem"><Link to="/fetch">Find Proposal</Link></div>
         </Nav>
         <div className="page">
             <Route path="/create" component={CreateProposalForm}/>
