@@ -89,6 +89,7 @@ contract Badla {
         Proposal memory p = proposals[proposalId];
         require(p.exists);
         require(p.state == 0);
+        require(p.banker != msg.sender);
         require(ERC20Interface(p.tokenAddress).allowance(msg.sender, this) >= p.nearLegPrice * p.vol);
 
         if (!ERC20Interface(p.tokenAddress).transferFrom(msg.sender, this, p.nearLegPrice * p.vol)) {
