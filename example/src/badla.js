@@ -1,26 +1,88 @@
-import React from 'react';
 import Web3 from 'web3';
 import ABI from './abi'
-const web3 = new Web3(window.web3.currentProvider);
+import Transaction from './transaction'
 
 class Badla {
 
-    BadlaAddress = "0x9015f742d0681173f3dd7288840bc399d8fa61ae"
-    WETHAddress = "0xe5a623180c3092e0930dea774da15ccd146131ce"
-    ER20TokenAddress = "0x60b6a6dc49f2e89d5758f160fa1aa906a37da5e6"
-    Badla : Object
-    ERCXToken : Object
-    DWETHToken : Object
+    transaction : Transaction
+    web3 : Web3
+    DWETHToken : ERCXTokenContract
+    ERCXToken : ERCXTokenContract
+    Badla : BadlaContract
 
-    construtor() {
-        alert(1)
-        var ERCXTokenContract = web3.eth.contract(ABI.ERCXTokenABI);
-        var BadlaContract = web3.eth.contract(ABI.BadlaABI);
-        this.DWETHToken = ERCXTokenContract.at(this.WETHAddress);
-        this.ERCXToken = ERCXTokenContract.at(this.ER20TokenAddress);
-        this.Badla = BadlaContract.at(this.BadlaAddress);
+    constructor() {
+        this.web3 = new Web3(window.web3.currentProvider);
+        this.transaction = new Transaction(this.web3);
+        var ERCXTokenContract = this.web3.eth.contract(ABI.ERCXTokenABI);
+        var BadlaContract = this.web3.eth.contract(ABI.BadlaABI);
+        this.Badla = BadlaContract.at(ABI.BadlaAddress);
+        this.WETHToken = ERCXTokenContract.at(ABI.WETHTokenAddress);
+        this.ERCXToken = ERCXTokenContract.at(ABI.ERCXTokenAddress);
     }
 
+    approve(quantity) {
+        return new Promise((succ, err) => {
+            let account = this.web3.eth.accounts[0];
+            this.WETHToken.approve(ABI.BadlaAddress, quantity, {from:account}, (err, res) => {
+                if (err) {
+                    err("Could not get token approval")
+                } else {
+                    succ(res)
+                }
+            });
+        });
+    }
+
+    _createProposal(quantity, price, term, returnPrice, triggerPrice) {
+        return new Promise((succ, err) => {
+            let account = this.web3.eth.accounts[0];
+            let tokenId = Math.floor(Math.random() * 1000);
+            this.Badla.createProposal(tokenId, ABI.WETHTokenAddress, quantity, ABI.ERCXTokenAddress, price, term, returnPrice, triggerPrice, {from:account}, (e, res) => {
+                if (e) {
+                    err("Could not create proposal")
+                } else {
+                    succ({tokenId:tokenId, transactionId:res})
+                }
+            });
+        });
+    }
+
+    getProposalFromTokenId(tokenId) {
+        return new Promise((succ, err) => {
+            this.Badla.tokenToProposalIds(tokenId, (err, res) => {
+                if (err) {
+                    err("Proposal is created but could not fetch id. Token Id - \""+tokenId+"\"");
+                } else {
+                    succ(res);
+                }
+            });
+        });
+    }
+
+    createProposal(quantity, price, term, returnPrice, triggerPrice, statusCallback) {
+        return new Promise((succ, err) => {
+            var tokenId;
+            statusCallback(0, "Waiting for token approval");
+            this.approve(quantity).then((transactionId) => {
+                statusCallback(20, "Got token approval. Verifying...");
+                return this.transaction.waitUntilMined(transactionId);
+            }).then(() => {
+                statusCallback(30, "Creating proposal");
+                return this._createProposal(quantity, price, term, returnPrice, triggerPrice);
+            }).then((res) => {
+                tokenId = res.tokenId;
+                statusCallback(70, "Proposal created. Verifying...");
+                return this.transaction.waitUntilMined(res.transactionId);
+            }).then(() => {
+                statusCallback(90, "Getting proposal id...");
+                return this.getProposalFromTokenId(tokenId);
+            }).then((proposalId) => {
+                succ(proposalId)
+            }).catch((msg) => {
+                err(msg)
+            });
+        });
+    }
 }
 
 export default Badla

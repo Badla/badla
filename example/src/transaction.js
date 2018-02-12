@@ -5,19 +5,13 @@ class Transaction {
 
     web3 : Web3
 
-    constructor(provider) {
-        this.web3 = new Web3(provider);
-    }
-
-    approve(from, to, amount) : Promise  {
-        return new Promise(function(fulfill, reject) {
-
-        })
+    constructor(web3) {
+        this.web3 = web3;
     }
 
     getTransactionStatus(hash) : Promise {
-        return new Promise(function(fulfill, reject) {
-            this.web3.eth.getTransaction(hash, function(err, res) {
+        return new Promise((fulfill, reject) => {
+            this.web3.eth.getTransaction(hash, (err, res) => {
                 if (err) {
                     reject(err);
                 } else {
@@ -25,25 +19,31 @@ class Transaction {
                     fulfill(blockNumber != null);
                 }
             })
-        }.bind(this))
+        })
     }
 
-    checkTransactionStatusInLoop(hash, fulfill) {
-        setTimeout(function() {
-            this.getTransactionStatus(hash).then(function(success) {
+    checkTransactionStatusInLoop(hash, fulfill, reject) {
+        setTimeout(() => {
+            this.getTransactionStatus(hash).then((success) => {
                 if (success) {
                     fulfill(success);
                 } else {
                     this.checkTransactionStatusInLoop(hash, fulfill);
                 }
+            }).catch((e) => {
+                reject(e);
             })
-        }.bind(this), 2000)
+        }, 2000)
     }
 
     waitUntilMined(hash) : Promise {
-        return new Promise(function(fulfill, reject) {
-            this.checkTransactionStatusInLoop(hash, fulfill);
-        }.bind(this))
+        return new Promise((fulfill, reject) => {
+            if (!hash) {
+                reject("Invalid transaction hash");
+                return;
+            }
+            this.checkTransactionStatusInLoop(hash, fulfill, reject);
+        })
     }
 
 }

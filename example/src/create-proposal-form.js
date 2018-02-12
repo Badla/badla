@@ -2,6 +2,7 @@ import React from 'react';
 import { ProgressBar, Modal, FormGroup, ControlLabel, Button, Panel, Checkbox, Radio, Alert, Glyphicon } from 'react-bootstrap';
 import FormInput from './form-input'
 import ABI from './abi'
+import BadlaJS from './badla'
 import Web3 from 'web3';
 import Transaction from './transaction'
 
@@ -9,41 +10,19 @@ class CreateProposalForm extends React.Component {
 
     transaction : Transaction
     web3 : Web3
+    badla : BadlaJS
 
     constructor(props) {
         super(props);
-        const hasWeb3 = window.web3 && window.web3.currentProvider;
-        if (hasWeb3) {
-            this.web3 = new Web3(window.web3.currentProvider);
-            this.transaction = new Transaction(window.web3.currentProvider);
-            console.log('Has web3 accounts - '+this.web3.eth.accounts.length);
-        }
+        this.web3 = new Web3(window.web3.currentProvider);
+        this.transaction = new Transaction(window.web3.currentProvider);
+        console.log('Has web3 accounts - '+this.web3.eth.accounts.length);
+        this.badla = new BadlaJS();
         this.state = {
             'validation' : {},
             'valid': true,
-            'hasWeb3' : hasWeb3,
             'forceSettlement' : false
         };
-    }
-
-    getBlock(cb) {
-        this.web3.eth.getBlock('latest', function(err, res) {
-            if (err) {
-                alert('Could not get latest block');
-                return;
-            }
-            cb(res.gasLimit)
-        })
-    }
-
-    getGasPrice(cb) {
-        this.web3.eth.getGasPrice(function(err, res) {
-            if (err) {
-                alert('Could not get gas price');
-                return;
-            }
-            cb(res.toString(10))
-        })
     }
 
     setProposalCreatingState(props) {
@@ -76,47 +55,14 @@ class CreateProposalForm extends React.Component {
         let triggerPrice = this.state.forceSettlement ? this.state.triggerPrice : returnPrice;
         let tokenId = Math.floor(Math.random() * 1000)
         let account = this.web3.eth.accounts[0];
-        // let gas = web3.eth.getBlock('latest').gasLimit;
-        console.log("Approving token from - "+this.web3.eth.accounts[0])
-        WETHToken.approve(ABI.BadlaAddress, quantity, {from:account}, function(err, res) {
-            if (err) {
-                this.setProposalCreatingState({done:true, progress:100, msg:"Could not get tokens", msgClass:"createError"});
-                console.log(err);
-                return;
-            }
-            console.log("Approval Submitted - "+res);
-            this.setProposalCreatingState({progress:30, msg:"Received token approval. Transferring..."});
-            this.transaction.waitUntilMined(res).then(function() {
-                console.log("Approved")
-                this.setProposalCreatingState({progress:70, msg:"Received tokens. Creating proposal..."});
-                var logEvent = Badla.LogBadlaEvent({},{fromBlock: 0, toBlock: 'latest'});
-                logEvent.watch(function(error, result){
-                    console.log("Badla Log: "+JSON.stringify(arguments));
-                });
-                console.log("Creating Proposal - "+tokenId)
-                Badla.createProposal(tokenId, ABI.WETHTokenAddress, quantity, ABI.ERCXTokenAddress, price, term, returnPrice, triggerPrice, {from:account}, function(err, res) {
-                    if (err) {
-                        this.setProposalCreatingState({done:true, progress:100, msg:"Could not create proposal", msgClass:"createError"});
-                        console.log(err);
-                        return;
-                    }
-                    console.log("Proposal Creation Submitted - "+res);
-                    this.setProposalCreatingState({progress:90, msg:"Creating proposal. Verifying..."});
-                    this.transaction.waitUntilMined(res).then(function() {
-                        Badla.tokenToProposalIds(tokenId, function(err, res) {
-                            if (err) {
-                                this.setProposalCreatingState({done:true, progress:100, msg:"Proposal is created but could not fetch id. Token Id - \""+tokenId+"\"", msgClass:"createError"});
-                                console.log(err);
-                                return;
-                            }
-                            this.setProposalCreatingState({done:true, progress:100, msg:"Proposal created with id - \""+res+"\""});
-                            console.log("Proposal created - "+res);
-                        }.bind(this));
-                    }.bind(this))
-                }.bind(this))
-            }.bind(this));
-        }.bind(this))
-        // Make a json and show
+
+        this.badla.createProposal(quantity, price, term, returnPrice, triggerPrice, (percent, msg) => {
+            this.setProposalCreatingState({progress:percent, msg:msg})
+        }).then((proposalId) => {
+            this.setProposalCreatingState({done:true, progress:100, msg:`Proposal created with id - "${proposalId}"`});
+        }).catch((msg) => {
+            this.setProposalCreatingState({done:true, progress:100, msg:msg, msgClass:"createError"})
+        })
     }
 
     isValid() {
@@ -136,13 +82,13 @@ class CreateProposalForm extends React.Component {
         var state = this.state;
         state[key] = value;
         state['validation'][key] = formValid;
-        this.setState(state, function() {
+        this.setState(state, () => {
             console.log(this.state);
         });
     }
 
     toggleForceSettlementInfo(event) {
-        this.setState({forceSettlement:event.target.checked}, function() {
+        this.setState({forceSettlement:event.target.checked}, () => {
             if (!this.state.forceSettlement) {
                 let newState = Object.assign({}, this.state)
                 newState.priceUrl = null

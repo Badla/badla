@@ -14,7 +14,7 @@ class FormInput extends React.Component {
             "address" : this.validateEthAddress.bind(this),
             "number" : this.validateNumber.bind(this),
             "url" : this.validateUrl.bind(this),
-            "nothingValidator" : function() { return null; }
+            "nothingValidator" : () => { return null; }
         }
     }
 

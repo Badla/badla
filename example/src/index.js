@@ -8,19 +8,19 @@ import { Alert, Nav } from 'react-bootstrap';
 
 const NoMetaMask = () => {
     return (
-    <Alert bsStyle="danger">
-        <p className="center fullHeight">
-        Badla needs metamask plugin installed in your browser and intialized.
-        Please visit&nbsp;<a target="_blank" href="https://metamask.io">metamask.io</a>
-        <br />
-        <img className="metamaskDownload" src="download-metamask-dark.png" width="200" />
-        </p>
-    </Alert>
+        <Alert bsStyle="danger">
+            <p className="center fullHeight">
+            Badla needs metamask plugin installed in your browser and intialized.
+            Please visit&nbsp;<a target="_blank" href="https://metamask.io">metamask.io</a>
+            <br />
+            <img className="metamaskDownload" src="download-metamask-dark.png" width="200" />
+            </p>
+        </Alert>
     )
 }
 
-ReactDOM.render(
-    <div>{ window.web3 ?
+const App = () => {
+    return (
         <BrowserRouter>
             <div className="fullHeight main">
                 <Nav>
@@ -33,6 +33,37 @@ ReactDOM.render(
                 </div>
             </div>
         </BrowserRouter>
-    : <NoMetaMask /> }</div>,
+    )
+}
+
+class AppLoader extends React.Component {
+
+    constructor(props) {
+        super(props);
+        this.state = {};
+        this.initialize()
+    }
+
+    initialize() {
+        var web3 = window.web3;
+        var account = web3.eth.accounts[0];
+        //Show account hash
+        //Show ERCX Bal
+        //Show DWETH Bal
+        setTimeout(() => {
+            this.setState({initialized:true});
+        }, 2000)
+    }
+
+    render() {
+        return (
+            <div>{ this.state.initialized ? <App /> : <div className="center"><img src="ajax-loader.gif" /></div>}</div>
+        )
+    }
+}
+
+
+ReactDOM.render(
+    <div>{ window.web3 ? <AppLoader /> : <NoMetaMask /> }</div>,
     document.getElementById('content')
 )

@@ -9,7 +9,7 @@ class FetchProposalForm extends React.Component {
 
     transaction : Transaction
     web3 : Web3
-    
+
     constructor(props) {
         super(props);
         const hasWeb3 = window.web3 && window.web3.currentProvider;
@@ -38,21 +38,21 @@ class FetchProposalForm extends React.Component {
         var proposalId = this.state.proposalId;
 
         // let gas = this.web3.eth.getBlock('latest').gasLimit;
-        console.log("Fetching proposal for id - "+proposalId)
-        Badla.proposals(proposalId, function(err, res) {
+        console.log(`Fetching proposal for id - ${proposalId}`)
+        Badla.proposals(proposalId, (err, res) => {
             if (err) {
                 alert("error in fetching proposal");
                 console.log(err);
                 return;
             }
             if (!res[0]) {
-                this.setState({proposal:{status:"not-found",msg:"Proposal "+proposalId+" not found"}})
+                this.setState({proposal:{status:"not-found",msg:`Proposal ${proposalId} not found`}})
                 console.log("Proposal not found");
                 return;
             }
             console.log(res);
-            this.setState({proposal:{status:"found", msg:"Proposal "+proposalId+" details below - ", data:JSON.stringify(res, null, 4)}})
-        }.bind(this))
+            this.setState({proposal:{status:"found", msg:`Proposal ${proposalId} details below - `, data:JSON.stringify(res, null, 4)}})
+        })
         // Make a json and show
     }
 
@@ -73,7 +73,7 @@ class FetchProposalForm extends React.Component {
         var state = this.state;
         state[key] = value;
         state['validation'][key] = formValid;
-        this.setState(state, function() {
+        this.setState(state, () => {
             console.log(this.state);
         });
     }
