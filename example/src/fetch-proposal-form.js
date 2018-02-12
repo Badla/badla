@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Alert, Glyphicon } from 'react-bootstrap';
+import { Button, ButtonToolbar, Alert, Glyphicon } from 'react-bootstrap';
 import FormInput from './form-input'
 import ABI from './abi'
 import BadlaJS from './badla'
@@ -100,7 +100,14 @@ class FetchProposalForm extends React.Component {
                 : null }
                 { this.state.proposal && this.state.proposal.data ?
                 <div>
-                    <pre>{this.state.proposal.data}</pre></div>
+                    <pre>{this.state.proposal.data}</pre>
+                    <ButtonToolbar>
+                        <Button bsStyle="danger" onClick={this.fetchProposal.bind(this)}>Cancel</Button>
+                        <Button bsStyle="success" onClick={this.fetchProposal.bind(this)}>Accept</Button>
+                        <Button bsStyle="success" onClick={this.fetchProposal.bind(this)}>Settle</Button>
+                        <Button bsStyle="danger" onClick={this.fetchProposal.bind(this)}>Force Settle</Button>
+                    </ButtonToolbar>
+                </div>
                 : null }
             </div>
         )
