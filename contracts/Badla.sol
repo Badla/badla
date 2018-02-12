@@ -1,17 +1,15 @@
 pragma solidity ^0.4.11; // solhint-disable-line compiler-fixed
 import "./ERC20Interface.sol";
-//import "./oraclizeAPI_0.5.sol"; // solhint-disable-line
+import "./oraclizeAPI_0.5.sol"; // solhint-disable-line
 
 
-//contract Badla is usingOraclize {
-contract Badla {
-
-    uint public currentPrice;
+contract Badla is usingOraclize {
 
     enum Status {
         NEW,
         ACCEPTED,
         CANCELLED,
+        FORCE_CLOSING,
         FORCE_CLOSED_EXPIRY,
         FORCE_CLOSED_PRICE,
         SETTLED
@@ -21,7 +19,7 @@ contract Badla {
         INSUFFICIENT_BALANCE_OR_ALLOWANCE,
         UNAUTHORIZED_ACCESS,
         PROPOSAL_INVALID_STATUS,
-        INVALID_PROPOSAL,
+        TRIGGER_PRICE,
         WALLET_ERROR
     }
 
@@ -39,14 +37,13 @@ contract Badla {
         uint8 status;
         address cashTokenAddress;
         address tokenAddress;
-
-        //0 -> new, 1-> accepted, 2->cancelled, 3->force on expiry, 4-> force on price, 5->settled
-
+        string priceURL;
         uint startTime;
     }
 
     mapping(string => Proposal) proposals;
     mapping(address => mapping(address => uint)) public wallet;
+    mapping(bytes32 => string) priceQueries;
 
     uint public proposalCount;
 
@@ -65,8 +62,8 @@ contract Badla {
                             uint nearLegPrice,
                             uint term,
                             uint farLegPrice,
-                            uint triggerPrice) public returns (bool) {
-
+                            uint triggerPrice,
+                            string priceURL) public returns (bool) {
 
         require(nearLegPrice > farLegPrice);
         require(!doesProsposalExist(pid));
@@ -87,6 +84,7 @@ contract Badla {
         p.nearLegPrice = nearLegPrice;
         p.farLegPrice = farLegPrice;
         p.triggerPrice = triggerPrice;
+        p.priceURL = priceURL;
         p.status = uint8(Status.NEW);
 
         LogProsposalEvent(uint8(Status.NEW), pid);
@@ -144,21 +142,47 @@ contract Badla {
         return true;
     }
 
-    function forceCloseOnPrice(string pid) public returns(bool) {
+    function forceCloseOnPrice(string pid) public payable returns(bool) {
 
         Proposal storage p = proposals[pid];
         require(p.exists);
-        require(p.status == 1);
-        require(currentPrice > p.triggerPrice);
+        require(p.status == uint8(Status.ACCEPTED) ||
+                p.status == uint8(Status.FORCE_CLOSING));
         require(p.banker == msg.sender);
 
-        wallet[p.banker][p.tokenAddress] += (p.nearLegPrice * p.vol);
+        if (oraclize_getPrice("URL") > this.balance) {
+            LogError(uint8(Errors.INSUFFICIENT_BALANCE_OR_ALLOWANCE),
+                    "Oraclize query was NOT sent, please add some ETH to cover for the query fee");
+        } else {
 
-        p.status = uint8(Status.FORCE_CLOSED_PRICE);
+            p.status = uint8(Status.FORCE_CLOSING);
+            LogProsposalEvent(uint8(Status.FORCE_CLOSING), pid);
 
-        LogProsposalEvent(uint8(Status.FORCE_CLOSED_PRICE), pid);
+            //json(http://demo5882368.mockable.io/latest_price).rates.ERCX
+            bytes32 queryId = oraclize_query("URL", p.priceURL);
+            priceQueries[queryId] = pid;
+        }
+    }
 
-        return true;
+    function __callback(bytes32 queryId, string result) public {
+
+        if (msg.sender != oraclize_cbAddress()) revert();
+
+        uint currentPrice = stringToUint(result);
+        string memory pid = priceQueries[queryId];
+
+        Proposal storage p = proposals[pid];
+
+        require(p.exists);
+
+        if (currentPrice > p.triggerPrice) {
+            _forceCloseOnPrice(pid);
+        } else {
+
+            LogError(uint8(Errors.TRIGGER_PRICE),
+                    "current price is below trigger price");
+            p.status = uint8(Status.ACCEPTED);
+        }
     }
 
     function forceCloseOnExpiry(string pid) public returns(bool) {
@@ -215,25 +239,6 @@ contract Badla {
         return true;
     }
 
-    /*function __callback(bytes32, string result) public {
-
-        if (msg.sender != oraclize_cbAddress()) revert();
-
-        currentPrice = stringToUint(result);
-
-        updatePrice();
-    }
-
-    function updatePrice() public payable {
-
-        if (oraclize_getPrice("URL") > this.balance) {
-            LogBadlaEvent("Oraclize query was NOT sent, please add some ETH to cover for the query fee");
-        } else {
-            LogBadlaEvent("Oraclize query was sent, standing by for the answer..");
-            oraclize_query(60, "URL", "json(http://demo5882368.mockable.io/latest_price).rates.ERCX");
-        }
-    }
-
     function stringToUint(string s) internal pure returns (uint result) {
 
         bytes memory b = bytes(s);
@@ -245,9 +250,27 @@ contract Badla {
                 result = result * 10 + (c - 48);
             }
         }
-    }*/
+    }
+
     function doesProsposalExist(string pid) internal view returns (bool exists) {
         Proposal memory p = proposals[pid];
         return p.exists;
+    }
+
+    function _forceCloseOnPrice(string pid) private returns(bool) {
+
+        Proposal storage p = proposals[pid];
+        require(p.exists);
+        require(p.status == uint8(Status.ACCEPTED) ||
+                p.status == uint8(Status.FORCE_CLOSING));
+        require(p.banker == msg.sender);
+
+        wallet[p.banker][p.tokenAddress] += (p.nearLegPrice * p.vol);
+
+        p.status = uint8(Status.FORCE_CLOSED_PRICE);
+
+        LogProsposalEvent(uint8(Status.FORCE_CLOSED_PRICE), pid);
+
+        return true;
     }
 }
