@@ -1,9 +1,12 @@
 pragma solidity ^0.4.11; // solhint-disable-line compiler-fixed
 import "./ERC20Interface.sol";
+import "./Wallet.sol";
 import "./oraclizeAPI_0.5.sol"; // solhint-disable-line
 
 
 contract Badla is usingOraclize {
+
+    using WalletLib for WalletLib.Wallet;
 
     enum Status {
         NEW,
@@ -41,11 +44,9 @@ contract Badla is usingOraclize {
         uint startTime;
     }
 
-    mapping(string => Proposal) proposals;
-    mapping(address => mapping(address => uint)) public wallet;
-    mapping(bytes32 => string) priceQueries;
-
-    uint public proposalCount;
+    mapping(string => Proposal) internal proposals;
+    WalletLib.Wallet internal wallet;
+    mapping(bytes32 => string) public priceQueries;
 
     event LogProsposalEvent(uint8 indexed status, string proposalId);
     event LogError(uint8 indexed errorId, string description);
@@ -107,7 +108,7 @@ contract Badla is usingOraclize {
             return false;
         }
 
-        wallet[msg.sender][p.cashTokenAddress] += p.vol;
+        wallet.sendTo(msg.sender, p.cashTokenAddress, p.vol);
 
         p.player = msg.sender;
         p.startTime = block.timestamp;
@@ -131,9 +132,12 @@ contract Badla is usingOraclize {
             return false;
         }
 
-        wallet[p.player][p.tokenAddress] += (p.farLegPrice * p.vol);
-        wallet[p.banker][p.cashTokenAddress] += p.vol;
-        wallet[p.banker][p.cashTokenAddress] += ((p.nearLegPrice-p.farLegPrice) * p.vol);
+        uint playerAmount = (p.farLegPrice * p.vol);
+        uint bankerAmount = ((p.nearLegPrice-p.farLegPrice) * p.vol);
+
+        wallet.sendTo(p.player, p.tokenAddress, playerAmount);
+        wallet.sendTo(p.banker, p.cashTokenAddress, p.vol);
+        wallet.sendTo(p.banker, p.tokenAddress, bankerAmount);
 
         p.status = uint8(Status.SETTLED);
 
@@ -193,10 +197,8 @@ contract Badla is usingOraclize {
         require(block.timestamp > (p.startTime + p.term));
         require(p.banker == msg.sender);
 
-        wallet[p.banker][p.tokenAddress] += (p.nearLegPrice * p.vol);
-
+        wallet.sendTo(p.banker, p.tokenAddress, (p.nearLegPrice * p.vol));
         p.status = uint8(Status.FORCE_CLOSED_EXPIRY);
-
         LogProsposalEvent(uint8(Status.FORCE_CLOSED_EXPIRY), pid);
 
         return true;
@@ -209,7 +211,7 @@ contract Badla is usingOraclize {
         require(p.status == 0);
         require(p.banker == msg.sender);
 
-        wallet[p.banker][p.cashTokenAddress] += p.vol;
+        wallet.sendTo(p.banker, p.cashTokenAddress, p.vol);
 
         p.status = uint8(Status.CANCELLED);
 
@@ -219,24 +221,11 @@ contract Badla is usingOraclize {
     }
 
     function withdraw(address tokenAddress) public returns (bool) {
+        return wallet.withdraw(tokenAddress);
+    }
 
-        uint amount = wallet[msg.sender][tokenAddress];
-
-        if (amount > 0) {
-
-            wallet[msg.sender][tokenAddress] = 0;
-
-            if (!ERC20Interface(tokenAddress).transferFrom(this, msg.sender, amount)) {
-                wallet[msg.sender][tokenAddress] = amount;
-                LogError(uint8(Errors.WALLET_ERROR), "Unable to withdraw from wallet");
-                return false;
-            }
-
-        }
-
-        LogWithdrawEvent(msg.sender, tokenAddress, amount);
-
-        return true;
+    function balanceOf(address tokenAddress) public returns (uint) {
+        return wallet.balanceOf(msg.sender, tokenAddress);
     }
 
     function stringToUint(string s) internal pure returns (uint result) {
@@ -265,7 +254,7 @@ contract Badla is usingOraclize {
                 p.status == uint8(Status.FORCE_CLOSING));
         require(p.banker == msg.sender);
 
-        wallet[p.banker][p.tokenAddress] += (p.nearLegPrice * p.vol);
+        wallet.sendTo(p.banker, p.tokenAddress, (p.nearLegPrice * p.vol));
 
         p.status = uint8(Status.FORCE_CLOSED_PRICE);
 

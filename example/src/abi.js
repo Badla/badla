@@ -244,18 +244,14 @@ export default {
             "type": "function"
         },
         {
-            "constant": true,
+            "constant": false,
             "inputs": [
                 {
-                    "name": "",
-                    "type": "address"
-                },
-                {
-                    "name": "",
+                    "name": "tokenAddress",
                     "type": "address"
                 }
             ],
-            "name": "wallet",
+            "name": "balanceOf",
             "outputs": [
                 {
                     "name": "",
@@ -263,7 +259,7 @@ export default {
                 }
             ],
             "payable": false,
-            "stateMutability": "view",
+            "stateMutability": "nonpayable",
             "type": "function"
         },
         {
@@ -306,12 +302,17 @@ export default {
         },
         {
             "constant": true,
-            "inputs": [],
-            "name": "proposalCount",
+            "inputs": [
+                {
+                    "name": "",
+                    "type": "bytes32"
+                }
+            ],
+            "name": "priceQueries",
             "outputs": [
                 {
                     "name": "",
-                    "type": "uint256"
+                    "type": "string"
                 }
             ],
             "payable": false,
@@ -670,7 +671,7 @@ export default {
             "type": "event"
         }
     ],
-    "BadlaAddress": "0x006148896e7bbbacb0831ab2a3f147117d2857a2",
-    "ERCXTokenAddress": "0x95e9c94432df3bc79d30ec053afbbb546121754a",
-    "WETHTokenAddress": "0x088e41a584786caba1f3891ceb61cb99f07af4e0"
+    "BadlaAddress": "0x30753e4a8aad7f8597332e813735def5dd395028",
+    "ERCXTokenAddress": "0xfb88de099e13c3ed21f80a7a1e49f8caecf10df6",
+    "WETHTokenAddress": "0xaa588d3737b611bafd7bd713445b314bd453a5c8"
 }
