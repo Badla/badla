@@ -4,7 +4,7 @@ import ReactDOM from 'react-dom';
 import CreateProposalForm from './create-proposal-form'
 import FetchProposalForm from './fetch-proposal-form'
 import { BrowserRouter, Link, Route } from 'react-router-dom'
-import { Nav, NavItem } from 'react-bootstrap';
+import { Nav } from 'react-bootstrap';
 
 const App = () => (
     <div className="fullHeight main">

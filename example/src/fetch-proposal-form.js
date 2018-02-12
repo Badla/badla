@@ -1,5 +1,5 @@
 import React from 'react';
-import { FormControl, FormGroup, HelpBlock, ControlLabel, Button, Panel, Checkbox, Radio, Alert, Glyphicon } from 'react-bootstrap';
+import { Button, Alert, Glyphicon } from 'react-bootstrap';
 import FormInput from './form-input'
 import ABI from './abi'
 import Web3 from 'web3';
@@ -34,7 +34,7 @@ class FetchProposalForm extends React.Component {
 
         // let gas = web3.eth.getBlock('latest').gasLimit;
         console.log("Fetching proposal for id - "+proposalId)
-        var proposal = Badla.proposals(proposalId, function(err, res) {
+        Badla.proposals(proposalId, function(err, res) {
             if (err) {
                 alert("error in fetching proposal");
                 console.log(err);
@@ -97,7 +97,7 @@ class FetchProposalForm extends React.Component {
                 <Button bsStyle="primary" onClick={this.fetchProposal.bind(this)}>Fetch</Button>
                 <br></br><br></br>
                 { this.state.proposal ?
-                    <Alert bsStyle={this.state.proposal.status == 'found' ? "success" : "danger"} onDismiss={this.handleDismiss}>
+                    <Alert bsStyle={this.state.proposal.status === 'found' ? "success" : "danger"} onDismiss={this.handleDismiss}>
                       <p>
                         {this.state.proposal.msg}
                       </p>

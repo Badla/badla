@@ -1,5 +1,5 @@
 import React from 'react';
-import { FormControl, FormGroup, HelpBlock, ControlLabel, Button, Panel, Checkbox, Radio } from 'react-bootstrap';
+import { FormControl, FormGroup, HelpBlock, ControlLabel } from 'react-bootstrap';
 
 class FormInput extends React.Component {
 
@@ -50,7 +50,7 @@ class FormInput extends React.Component {
     }
 
     render() {
-        let value = this.state.value || this.state.value == '' ? this.state.value : this.props.value
+        let value = this.state.value || this.state.value === '' ? this.state.value : this.props.value
         return (
             <FormGroup validationState={this.getValidationState()}>
                 <ControlLabel className={this.props.alignClass}>{this.props.label}</ControlLabel>

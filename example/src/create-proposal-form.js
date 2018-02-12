@@ -1,5 +1,5 @@
 import React from 'react';
-import { ProgressBar, Modal, FormControl, FormGroup, HelpBlock, ControlLabel, Button, Panel, Checkbox, Radio, Alert, Glyphicon } from 'react-bootstrap';
+import { ProgressBar, Modal, FormGroup, ControlLabel, Button, Panel, Checkbox, Radio, Alert, Glyphicon } from 'react-bootstrap';
 import FormInput from './form-input'
 import ABI from './abi'
 import Web3 from 'web3';
