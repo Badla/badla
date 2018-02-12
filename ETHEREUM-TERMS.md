@@ -14,11 +14,12 @@
     <br>To check current block gas limit try -
     <br>`web3.eth.getBlock('latest').gasLimit`
 
-### Typical gas errors
+### Typical gas errors and how to handle
 
 #### Out of gas
-The gas consumed by transaction exceed the limits specified by either the transaction call or by some parameter in the connection configuration.
+`Desc:` The gas consumed by transaction exceed the limits specified by either the transaction call or by some parameter in the connection configuration.
 <br>Ex: Truffle's  `tuffle.js` has gas parameters
+<br>`Soln:` Set transaction gas limit (not gas price) to latest block gas limit (`web3.eth.getBlock('latest').gasLimit`). In `truffle.js`, the config parameter is called `gas`
 
 #### Exceeds block gas limit
-The transaction gas limit specified exceeds block gas limit and hence the transaction cannot be accommodated in a single block. Check current block gas limit and break down the transaction to multiple transactions to lower gas required per transaction to within a block gas limit and thus it can span multiple blocks. Alternately raise block gas limit (how?).
+`Desc:` The transaction gas limit specified exceeds block gas limit and hence the transaction cannot be accommodated in a single block. Check current block gas limit and break down the transaction to multiple transactions to lower gas required per transaction to within a block gas limit and thus it can span multiple blocks. Alternately raise block gas limit (how?).
