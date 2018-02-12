@@ -46,7 +46,13 @@ class CreateProposalForm extends React.Component {
         this.badla.createProposal(quantity, price, term, returnPrice, triggerPrice, priceUrl, (percent, msg) => {
             this.setProposalCreatingState({progress:percent, msg:msg})
         }).then((proposalId) => {
-            this.setProposalCreatingState({done:true, progress:100, msg:`Proposal created with id - "${proposalId}"`});
+            let forceSettlement = this.state.forceSettlement ? true : false;
+            let userData = {"proposalId":proposalId, "quantity":quantity, "nearLegPrice": price, "farLegPrice": returnPrice, "term":term, "forceSettlement":forceSettlement};
+            if (forceSettlement) {
+                userData["triggerPrice"] = triggerPrice;
+                userData["priceUrl"] = priceUrl;
+            }
+            this.setProposalCreatingState({done:true, progress:100, userData:JSON.stringify(userData, null, 4), msg:`Proposal created with id - "${proposalId}"`});
         }).catch((msg) => {
             this.setProposalCreatingState({done:true, progress:100, msg:msg, msgClass:"createError"})
         })
@@ -146,7 +152,8 @@ class CreateProposalForm extends React.Component {
                                 this.state.creatingProposal.msgClass === "createError" ?
                                     <ProgressBar bsStyle="danger" now={this.state.creatingProposal.progress} />
                                     :
-                                    <ProgressBar bsStyle="success" now={this.state.creatingProposal.progress} />
+                                    <div><ProgressBar bsStyle="success" now={this.state.creatingProposal.progress} />
+                                    <pre>{this.state.creatingProposal.userData}</pre></div>
                                 :
                                 <ProgressBar striped bsStyle="info" now={this.state.creatingProposal.progress} />
                             }
