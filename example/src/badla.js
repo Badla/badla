@@ -65,10 +65,21 @@ class Badla {
         });
     }
 
+    hashCode(str) {
+        var hash = 0, i, chr;
+        if (str.length === 0) return hash;
+        for (i = 0; i < str.length; i++) {
+            chr   = str.charCodeAt(i);
+            hash  = ((hash << 5) - hash) + chr;
+            hash |= 0; // Convert to 32bit integer
+        }
+        return hash;
+    }
+
 
     createProposal(quantity, price, term, returnPrice, triggerPrice, priceUrl, statusCallback) {
         return new Promise((succ, err) => {
-            var proposalId = this.UUID();
+            var proposalId = this.hashCode(this.UUID());
             statusCallback(0, "Waiting for token approval");
             this.approve(quantity).then((transactionId) => {
                 statusCallback(20, "Got token approval. Verifying...");
@@ -85,6 +96,20 @@ class Badla {
                 err(msg)
             });
         });
+    }
+
+    fetchProposal(proposalId) {
+        return new Promise((succ, err) => {
+            this.Badla.proposals(proposalId, (e, res) => {
+                if (e) {
+                    err("Error in fetching proposal")
+                } else if (!res[0]) {
+                    err("Proposal not found")
+                } else {
+                    succ(res)
+                }
+            });
+        })
     }
 }
 

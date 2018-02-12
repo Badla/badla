@@ -7,8 +7,284 @@ export default {
             "constant": true,
             "inputs": [
                 {
-                    "name": "pid",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "name": "proposals",
+            "outputs": [
+                {
+                    "name": "exists",
+                    "type": "bool"
+                },
+                {
+                    "name": "banker",
+                    "type": "address"
+                },
+                {
+                    "name": "player",
+                    "type": "address"
+                },
+                {
+                    "name": "vol",
+                    "type": "uint256"
+                },
+                {
+                    "name": "nearLegPrice",
+                    "type": "uint256"
+                },
+                {
+                    "name": "term",
+                    "type": "uint256"
+                },
+                {
+                    "name": "farLegPrice",
+                    "type": "uint256"
+                },
+                {
+                    "name": "triggerPrice",
+                    "type": "uint256"
+                },
+                {
+                    "name": "status",
+                    "type": "uint8"
+                },
+                {
+                    "name": "cashTokenAddress",
+                    "type": "address"
+                },
+                {
+                    "name": "tokenAddress",
+                    "type": "address"
+                },
+                {
+                    "name": "priceURL",
                     "type": "string"
+                },
+                {
+                    "name": "startTime",
+                    "type": "uint256"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "name": "pid",
+                    "type": "uint256"
+                }
+            ],
+            "name": "settleProposal",
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "name": "queryId",
+                    "type": "bytes32"
+                },
+                {
+                    "name": "result",
+                    "type": "string"
+                }
+            ],
+            "name": "__callback",
+            "outputs": [],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "name": "pid",
+                    "type": "uint256"
+                }
+            ],
+            "name": "forceCloseOnExpiry",
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "name": "myid",
+                    "type": "bytes32"
+                },
+                {
+                    "name": "result",
+                    "type": "string"
+                },
+                {
+                    "name": "proof",
+                    "type": "bytes"
+                }
+            ],
+            "name": "__callback",
+            "outputs": [],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "name": "pid",
+                    "type": "uint256"
+                }
+            ],
+            "name": "forceCloseOnPrice",
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "payable": true,
+            "stateMutability": "payable",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "name": "tokenAddress",
+                    "type": "address"
+                }
+            ],
+            "name": "withdraw",
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "name": "pid",
+                    "type": "uint256"
+                }
+            ],
+            "name": "acceptProposal",
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [
+                {
+                    "name": "",
+                    "type": "address"
+                },
+                {
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "name": "wallet",
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "name": "pid",
+                    "type": "uint256"
+                },
+                {
+                    "name": "cashTokenAddress",
+                    "type": "address"
+                },
+                {
+                    "name": "vol",
+                    "type": "uint256"
+                },
+                {
+                    "name": "tokenAddress",
+                    "type": "address"
+                },
+                {
+                    "name": "nearLegPrice",
+                    "type": "uint256"
+                },
+                {
+                    "name": "term",
+                    "type": "uint256"
+                },
+                {
+                    "name": "farLegPrice",
+                    "type": "uint256"
+                },
+                {
+                    "name": "triggerPrice",
+                    "type": "uint256"
+                },
+                {
+                    "name": "priceURL",
+                    "type": "string"
+                }
+            ],
+            "name": "createProposal",
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [
+                {
+                    "name": "pid",
+                    "type": "uint256"
                 }
             ],
             "name": "getProposal",
@@ -77,234 +353,6 @@ export default {
             "type": "function"
         },
         {
-            "constant": false,
-            "inputs": [
-                {
-                    "name": "queryId",
-                    "type": "bytes32"
-                },
-                {
-                    "name": "result",
-                    "type": "string"
-                }
-            ],
-            "name": "__callback",
-            "outputs": [],
-            "payable": false,
-            "stateMutability": "nonpayable",
-            "type": "function"
-        },
-        {
-            "constant": false,
-            "inputs": [
-                {
-                    "name": "pid",
-                    "type": "string"
-                },
-                {
-                    "name": "cashTokenAddress",
-                    "type": "address"
-                },
-                {
-                    "name": "vol",
-                    "type": "uint256"
-                },
-                {
-                    "name": "tokenAddress",
-                    "type": "address"
-                },
-                {
-                    "name": "nearLegPrice",
-                    "type": "uint256"
-                },
-                {
-                    "name": "term",
-                    "type": "uint256"
-                },
-                {
-                    "name": "farLegPrice",
-                    "type": "uint256"
-                },
-                {
-                    "name": "triggerPrice",
-                    "type": "uint256"
-                },
-                {
-                    "name": "priceURL",
-                    "type": "string"
-                }
-            ],
-            "name": "createProposal",
-            "outputs": [
-                {
-                    "name": "",
-                    "type": "bool"
-                }
-            ],
-            "payable": false,
-            "stateMutability": "nonpayable",
-            "type": "function"
-        },
-        {
-            "constant": false,
-            "inputs": [
-                {
-                    "name": "myid",
-                    "type": "bytes32"
-                },
-                {
-                    "name": "result",
-                    "type": "string"
-                },
-                {
-                    "name": "proof",
-                    "type": "bytes"
-                }
-            ],
-            "name": "__callback",
-            "outputs": [],
-            "payable": false,
-            "stateMutability": "nonpayable",
-            "type": "function"
-        },
-        {
-            "constant": false,
-            "inputs": [
-                {
-                    "name": "pid",
-                    "type": "string"
-                }
-            ],
-            "name": "cancelProposal",
-            "outputs": [
-                {
-                    "name": "",
-                    "type": "bool"
-                }
-            ],
-            "payable": false,
-            "stateMutability": "nonpayable",
-            "type": "function"
-        },
-        {
-            "constant": false,
-            "inputs": [
-                {
-                    "name": "tokenAddress",
-                    "type": "address"
-                }
-            ],
-            "name": "withdraw",
-            "outputs": [
-                {
-                    "name": "",
-                    "type": "bool"
-                }
-            ],
-            "payable": false,
-            "stateMutability": "nonpayable",
-            "type": "function"
-        },
-        {
-            "constant": false,
-            "inputs": [
-                {
-                    "name": "pid",
-                    "type": "string"
-                }
-            ],
-            "name": "acceptProposal",
-            "outputs": [
-                {
-                    "name": "",
-                    "type": "bool"
-                }
-            ],
-            "payable": false,
-            "stateMutability": "nonpayable",
-            "type": "function"
-        },
-        {
-            "constant": false,
-            "inputs": [
-                {
-                    "name": "pid",
-                    "type": "string"
-                }
-            ],
-            "name": "forceCloseOnExpiry",
-            "outputs": [
-                {
-                    "name": "",
-                    "type": "bool"
-                }
-            ],
-            "payable": false,
-            "stateMutability": "nonpayable",
-            "type": "function"
-        },
-        {
-            "constant": true,
-            "inputs": [
-                {
-                    "name": "",
-                    "type": "address"
-                },
-                {
-                    "name": "",
-                    "type": "address"
-                }
-            ],
-            "name": "wallet",
-            "outputs": [
-                {
-                    "name": "",
-                    "type": "uint256"
-                }
-            ],
-            "payable": false,
-            "stateMutability": "view",
-            "type": "function"
-        },
-        {
-            "constant": false,
-            "inputs": [
-                {
-                    "name": "pid",
-                    "type": "string"
-                }
-            ],
-            "name": "settleProposal",
-            "outputs": [
-                {
-                    "name": "",
-                    "type": "bool"
-                }
-            ],
-            "payable": false,
-            "stateMutability": "nonpayable",
-            "type": "function"
-        },
-        {
-            "constant": false,
-            "inputs": [
-                {
-                    "name": "pid",
-                    "type": "string"
-                }
-            ],
-            "name": "forceCloseOnPrice",
-            "outputs": [
-                {
-                    "name": "",
-                    "type": "bool"
-                }
-            ],
-            "payable": true,
-            "stateMutability": "payable",
-            "type": "function"
-        },
-        {
             "constant": true,
             "inputs": [],
             "name": "proposalCount",
@@ -319,6 +367,25 @@ export default {
             "type": "function"
         },
         {
+            "constant": false,
+            "inputs": [
+                {
+                    "name": "pid",
+                    "type": "uint256"
+                }
+            ],
+            "name": "cancelProposal",
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
             "anonymous": false,
             "inputs": [
                 {
@@ -329,7 +396,7 @@ export default {
                 {
                     "indexed": false,
                     "name": "proposalId",
-                    "type": "string"
+                    "type": "uint256"
                 }
             ],
             "name": "LogProsposalEvent",
@@ -670,7 +737,7 @@ export default {
             "type": "event"
         }
     ],
-    "BadlaAddress": "0x006148896e7bbbacb0831ab2a3f147117d2857a2",
-    "ERCXTokenAddress": "0x95e9c94432df3bc79d30ec053afbbb546121754a",
-    "WETHTokenAddress": "0x088e41a584786caba1f3891ceb61cb99f07af4e0"
+    "BadlaAddress": "0x06439bc05a74783a0affc56a4f4d195e54298077",
+    "ERCXTokenAddress": "0x7f4ae0d90dafceb29dca8538d350e1bd0618dfa0",
+    "WETHTokenAddress": "0x0250c234536b1bdfa779a5dc0a83f63c11e77ca4"
 }
