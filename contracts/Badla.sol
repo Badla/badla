@@ -18,11 +18,27 @@ contract Badla {
 
     uint public currentPrice;
 
+    enum Status {
+        NEW,
+        ACCEPTED,
+        CANCELLED,
+        FORCE_CLOSED_EXPIRY,
+        FORCE_CLOSED_PRICE,
+        SETTLED
+    }
+
+    enum Errors {
+        INSUFFICIENT_BALANCE_OR_ALLOWANCE,
+        UNAUTHORIZED_ACCESS,
+        PROPOSAL_INVALID_STATUS,
+        INVALID_PROPOSAL,
+        WALLET_ERROR
+    }
+
     //Two tokens are ETHX and BWETH
     struct Proposal {
 
         bool exists;
-        uint proposalId;
         address banker;
         address player;
         uint vol;
@@ -30,7 +46,7 @@ contract Badla {
         uint term;
         uint farLegPrice;
         uint triggerPrice;
-        uint state;
+        uint8 status;
         address cashTokenAddress;
         address tokenAddress;
 
@@ -39,81 +55,91 @@ contract Badla {
         uint startTime;
     }
 
-    mapping(uint => Proposal) public proposals;
-    mapping(uint => uint) public tokenToProposalIds;
+    mapping(string => Proposal) proposals;
     mapping(address => mapping(address => uint)) public wallet;
 
     uint public proposalCount;
 
-    event LogBadlaEvent(string description);
+    event LogProsposalEvent(uint8 indexed status, string proposalId);
+    event LogError(uint8 indexed errorId, string description);
+    event LogWithdrawEvent(address indexed account, address indexed token, uint amount);
 
-    function createProposal(uint token,
+    function getProposal(string pid) public constant returns (Proposal) {
+        return proposals[pid];
+    }
+
+    function createProposal(string pid,
                             address cashTokenAddress,
                             uint vol,
                             address tokenAddress,
                             uint nearLegPrice,
                             uint term,
                             uint farLegPrice,
-                            uint triggerPrice) public returns (uint proposalId) {
+                            uint triggerPrice) public returns (bool) {
 
 
         require(nearLegPrice > farLegPrice);
-        require(ERC20Interface(cashTokenAddress).allowance(msg.sender, this) >= vol);
+        require(!doesProsposalExist(pid));
 
-        if (!ERC20Interface(cashTokenAddress).transferFrom(msg.sender, this, vol)) {
-            return 0;
+        if (!(ERC20Interface(cashTokenAddress).allowance(msg.sender, this) >= vol &&
+            ERC20Interface(cashTokenAddress).transferFrom(msg.sender, this, vol))) {
+            LogError(uint8(Errors.INSUFFICIENT_BALANCE_OR_ALLOWANCE), "Insufficient balance to create prosposal");
+            return false;
         }
 
-        proposalCount += 1;
-
-        Proposal storage p = proposals[proposalCount];
+        Proposal storage p = proposals[pid];
         p.cashTokenAddress = cashTokenAddress;
         p.tokenAddress = tokenAddress;
         p.exists = true;
-        p.proposalId = proposalCount;
         p.banker = msg.sender;
         p.vol = vol;
         p.term = term * 3600;
         p.nearLegPrice = nearLegPrice;
         p.farLegPrice = farLegPrice;
         p.triggerPrice = triggerPrice;
-        p.state = 0;
+        p.status = uint8(Status.NEW);
 
-        tokenToProposalIds[token] = p.proposalId;
+        LogProsposalEvent(uint8(Status.NEW), pid);
 
-        return p.proposalId;
+        return true;
     }
 
-    function acceptProposal(uint proposalId) public returns (bool) {
+    function acceptProposal(string pid) public returns (bool) {
 
-        Proposal memory p = proposals[proposalId];
+        Proposal memory p = proposals[pid];
         require(p.exists);
-        require(p.state == 0);
+        require(p.status == 0);
         require(p.banker != msg.sender);
-        require(ERC20Interface(p.tokenAddress).allowance(msg.sender, this) >= p.nearLegPrice * p.vol);
 
-        if (!ERC20Interface(p.tokenAddress).transferFrom(msg.sender, this, p.nearLegPrice * p.vol)) {
+        uint tokenAmount = p.nearLegPrice * p.vol;
+
+        if (!(ERC20Interface(p.tokenAddress).allowance(msg.sender, this) >= tokenAmount &&
+            ERC20Interface(p.tokenAddress).transferFrom(msg.sender, this, tokenAmount))) {
+            LogError(uint8(Errors.INSUFFICIENT_BALANCE_OR_ALLOWANCE), "Insufficient balance to accept prosposal");
             return false;
         }
 
         wallet[msg.sender][p.cashTokenAddress] += p.vol;
 
         p.player = msg.sender;
-        p.startTime = now;
-        p.state = 1;
+        p.startTime = block.timestamp;
+        p.status = uint8(Status.ACCEPTED);
+
+        LogProsposalEvent(uint8(Status.ACCEPTED), pid);
 
         return true;
     }
 
-    function settleProposal(uint proposalId) public returns(bool) {
+    function settleProposal(string pid) public returns(bool) {
 
-        Proposal storage p = proposals[proposalId];
+        Proposal storage p = proposals[pid];
         require(p.exists);
-        require(p.state == 1);
+        require(p.status == 1);
         require(p.player == msg.sender);
-        require(ERC20Interface(p.cashTokenAddress).allowance(msg.sender, this) >= p.vol);
 
-        if (!ERC20Interface(p.cashTokenAddress).transferFrom(msg.sender, this, p.vol)) {
+        if (!(ERC20Interface(p.cashTokenAddress).allowance(msg.sender, this) >= p.vol &&
+            ERC20Interface(p.cashTokenAddress).transferFrom(msg.sender, this, p.vol))) {
+            LogError(uint8(Errors.INSUFFICIENT_BALANCE_OR_ALLOWANCE), "Insufficient balance to settle prosposal");
             return false;
         }
 
@@ -121,52 +147,59 @@ contract Badla {
         wallet[p.banker][p.cashTokenAddress] += p.vol;
         wallet[p.banker][p.cashTokenAddress] += ((p.nearLegPrice-p.farLegPrice) * p.vol);
 
-        p.state = 5;
+        p.status = uint8(Status.SETTLED);
+
+        LogProsposalEvent(uint8(Status.CANCELLED), pid);
 
         return true;
     }
 
-    function forceCloseOnPrice(uint proposalId) public returns(bool) {
+    function forceCloseOnPrice(string pid) public returns(bool) {
 
-        Proposal storage p = proposals[proposalId];
+        Proposal storage p = proposals[pid];
         require(p.exists);
-        require(p.state == 1);
+        require(p.status == 1);
         require(currentPrice > p.triggerPrice);
         require(p.banker == msg.sender);
 
         wallet[p.banker][p.tokenAddress] += (p.nearLegPrice * p.vol);
 
-        p.state = 4;
+        p.status = uint8(Status.FORCE_CLOSED_PRICE);
+
+        LogProsposalEvent(uint8(Status.FORCE_CLOSED_PRICE), pid);
 
         return true;
     }
 
-    function forceCloseOnExpiry(uint proposalId) public returns(bool) {
+    function forceCloseOnExpiry(string pid) public returns(bool) {
 
-        Proposal storage p = proposals[proposalId];
+        Proposal storage p = proposals[pid];
         require(p.exists);
-        require(p.state == 1);
-        require(now > (p.startTime + p.term));
+        require(p.status == 1);
+        require(block.timestamp > (p.startTime + p.term));
         require(p.banker == msg.sender);
 
         wallet[p.banker][p.tokenAddress] += (p.nearLegPrice * p.vol);
 
-        p.state = 3;
+        p.status = uint8(Status.FORCE_CLOSED_EXPIRY);
+
+        LogProsposalEvent(uint8(Status.FORCE_CLOSED_EXPIRY), pid);
 
         return true;
     }
 
-    function cancelProposal(uint proposalId) public returns (bool) {
+    function cancelProposal(string pid) public returns (bool) {
 
-        Proposal storage p = proposals[proposalId];
-
+        Proposal storage p = proposals[pid];
         require(p.exists);
-        require(p.state == 0);
+        require(p.status == 0);
         require(p.banker == msg.sender);
 
         wallet[p.banker][p.cashTokenAddress] += p.vol;
 
-        p.state = 2;
+        p.status = uint8(Status.CANCELLED);
+
+        LogProsposalEvent(uint8(Status.CANCELLED), pid);
 
         return true;
     }
@@ -181,10 +214,14 @@ contract Badla {
 
             if (!ERC20Interface(tokenAddress).transferFrom(this, msg.sender, amount)) {
                 wallet[msg.sender][tokenAddress] = amount;
+                LogError(uint8(Errors.WALLET_ERROR), "Unable to withdraw from wallet");
                 return false;
             }
 
         }
+
+        LogWithdrawEvent(msg.sender, tokenAddress, amount);
+
         return true;
     }
 
@@ -219,5 +256,8 @@ contract Badla {
             }
         }
     }*/
-
+    function doesProsposalExist(string pid) internal view returns (bool exists) {
+        Proposal memory p = proposals[pid];
+        return p.exists;
+    }
 }
