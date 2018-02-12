@@ -11,9 +11,9 @@ const NoMetaMask = () => {
         <Alert bsStyle="danger">
             <p className="center fullHeight">
             Badla needs metamask plugin installed in your browser and intialized.
-            Please visit&nbsp;<a target="_blank" href="https://metamask.io">metamask.io</a>
+            Please visit&nbsp;<a target="_blank" rel="noopener noreferrer" href="https://metamask.io">metamask.io</a>
             <br />
-            <img className="metamaskDownload" src="download-metamask-dark.png" width="200" />
+            <img alt="metamask-logo" className="metamaskDownload" src="download-metamask-dark.png" width="200" />
             </p>
         </Alert>
     )
@@ -45,8 +45,8 @@ class AppLoader extends React.Component {
     }
 
     initialize() {
-        var web3 = window.web3;
-        var account = web3.eth.accounts[0];
+        // var web3 = window.web3;
+        // var account = web3.eth.accounts[0];
         //Show account hash
         //Show ERCX Bal
         //Show DWETH Bal
@@ -57,7 +57,7 @@ class AppLoader extends React.Component {
 
     render() {
         return (
-            <div>{ this.state.initialized ? <App /> : <div className="center"><img src="ajax-loader.gif" /></div>}</div>
+            <div>{ this.state.initialized ? <App /> : <div className="center"><img alt="loading..." src="ajax-loader.gif" /></div>}</div>
         )
     }
 }

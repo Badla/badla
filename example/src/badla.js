@@ -23,8 +23,8 @@ class Badla {
     approve(quantity) {
         return new Promise((succ, err) => {
             let account = this.web3.eth.accounts[0];
-            this.WETHToken.approve(ABI.BadlaAddress, quantity, {from:account}, (err, res) => {
-                if (err) {
+            this.WETHToken.approve(ABI.BadlaAddress, quantity, {from:account}, (e, res) => {
+                if (e) {
                     err("Could not get token approval")
                 } else {
                     succ(res)
@@ -33,15 +33,14 @@ class Badla {
         });
     }
 
-    _createProposal(quantity, price, term, returnPrice, triggerPrice) {
+    _createProposal(proposalId, quantity, price, term, returnPrice, triggerPrice, priceUrl) {
         return new Promise((succ, err) => {
             let account = this.web3.eth.accounts[0];
-            let tokenId = Math.floor(Math.random() * 1000);
-            this.Badla.createProposal(tokenId, ABI.WETHTokenAddress, quantity, ABI.ERCXTokenAddress, price, term, returnPrice, triggerPrice, {from:account}, (e, res) => {
+            this.Badla.createProposal(proposalId, ABI.WETHTokenAddress, quantity, ABI.ERCXTokenAddress, price, term, returnPrice, triggerPrice, priceUrl, {from:account}, (e, res) => {
                 if (e) {
                     err("Could not create proposal")
                 } else {
-                    succ({tokenId:tokenId, transactionId:res})
+                    succ(res)
                 }
             });
         });
@@ -49,8 +48,8 @@ class Badla {
 
     getProposalFromTokenId(tokenId) {
         return new Promise((succ, err) => {
-            this.Badla.tokenToProposalIds(tokenId, (err, res) => {
-                if (err) {
+            this.Badla.tokenToProposalIds(tokenId, (e, res) => {
+                if (e) {
                     err("Proposal is created but could not fetch id. Token Id - \""+tokenId+"\"");
                 } else {
                     succ(res);
@@ -59,24 +58,28 @@ class Badla {
         });
     }
 
-    createProposal(quantity, price, term, returnPrice, triggerPrice, statusCallback) {
+    UUID() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            var r = Math.random() * 16 | 0, v = c === 'x' ? r : ((r & 0x3) | 0x8);
+            return v.toString(16);
+        });
+    }
+
+
+    createProposal(quantity, price, term, returnPrice, triggerPrice, priceUrl, statusCallback) {
         return new Promise((succ, err) => {
-            var tokenId;
+            var proposalId = this.UUID();
             statusCallback(0, "Waiting for token approval");
             this.approve(quantity).then((transactionId) => {
                 statusCallback(20, "Got token approval. Verifying...");
                 return this.transaction.waitUntilMined(transactionId);
             }).then(() => {
                 statusCallback(30, "Creating proposal");
-                return this._createProposal(quantity, price, term, returnPrice, triggerPrice);
-            }).then((res) => {
-                tokenId = res.tokenId;
+                return this._createProposal(proposalId, quantity, price, term, returnPrice, triggerPrice, priceUrl);
+            }).then((transactionId) => {
                 statusCallback(70, "Proposal created. Verifying...");
-                return this.transaction.waitUntilMined(res.transactionId);
+                return this.transaction.waitUntilMined(transactionId);
             }).then(() => {
-                statusCallback(90, "Getting proposal id...");
-                return this.getProposalFromTokenId(tokenId);
-            }).then((proposalId) => {
                 succ(proposalId)
             }).catch((msg) => {
                 err(msg)

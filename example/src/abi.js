@@ -7,31 +7,111 @@ export default {
             "constant": true,
             "inputs": [
                 {
-                    "name": "",
-                    "type": "uint256"
+                    "name": "pid",
+                    "type": "string"
                 }
             ],
-            "name": "proposals",
+            "name": "getProposal",
             "outputs": [
                 {
-                    "name": "exists",
-                    "type": "bool"
+                    "components": [
+                        {
+                            "name": "exists",
+                            "type": "bool"
+                        },
+                        {
+                            "name": "banker",
+                            "type": "address"
+                        },
+                        {
+                            "name": "player",
+                            "type": "address"
+                        },
+                        {
+                            "name": "vol",
+                            "type": "uint256"
+                        },
+                        {
+                            "name": "nearLegPrice",
+                            "type": "uint256"
+                        },
+                        {
+                            "name": "term",
+                            "type": "uint256"
+                        },
+                        {
+                            "name": "farLegPrice",
+                            "type": "uint256"
+                        },
+                        {
+                            "name": "triggerPrice",
+                            "type": "uint256"
+                        },
+                        {
+                            "name": "status",
+                            "type": "uint8"
+                        },
+                        {
+                            "name": "cashTokenAddress",
+                            "type": "address"
+                        },
+                        {
+                            "name": "tokenAddress",
+                            "type": "address"
+                        },
+                        {
+                            "name": "priceURL",
+                            "type": "string"
+                        },
+                        {
+                            "name": "startTime",
+                            "type": "uint256"
+                        }
+                    ],
+                    "name": "",
+                    "type": "tuple"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "name": "queryId",
+                    "type": "bytes32"
                 },
                 {
-                    "name": "proposalId",
-                    "type": "uint256"
+                    "name": "result",
+                    "type": "string"
+                }
+            ],
+            "name": "__callback",
+            "outputs": [],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "name": "pid",
+                    "type": "string"
                 },
                 {
-                    "name": "banker",
-                    "type": "address"
-                },
-                {
-                    "name": "player",
+                    "name": "cashTokenAddress",
                     "type": "address"
                 },
                 {
                     "name": "vol",
                     "type": "uint256"
+                },
+                {
+                    "name": "tokenAddress",
+                    "type": "address"
                 },
                 {
                     "name": "nearLegPrice",
@@ -50,35 +130,11 @@ export default {
                     "type": "uint256"
                 },
                 {
-                    "name": "state",
-                    "type": "uint256"
-                },
-                {
-                    "name": "cashTokenAddress",
-                    "type": "address"
-                },
-                {
-                    "name": "tokenAddress",
-                    "type": "address"
-                },
-                {
-                    "name": "startTime",
-                    "type": "uint256"
+                    "name": "priceURL",
+                    "type": "string"
                 }
             ],
-            "payable": false,
-            "stateMutability": "view",
-            "type": "function"
-        },
-        {
-            "constant": false,
-            "inputs": [
-                {
-                    "name": "proposalId",
-                    "type": "uint256"
-                }
-            ],
-            "name": "settleProposal",
+            "name": "createProposal",
             "outputs": [
                 {
                     "name": "",
@@ -93,17 +149,20 @@ export default {
             "constant": false,
             "inputs": [
                 {
-                    "name": "proposalId",
-                    "type": "uint256"
-                }
-            ],
-            "name": "forceCloseOnExpiry",
-            "outputs": [
+                    "name": "myid",
+                    "type": "bytes32"
+                },
                 {
-                    "name": "",
-                    "type": "bool"
+                    "name": "result",
+                    "type": "string"
+                },
+                {
+                    "name": "proof",
+                    "type": "bytes"
                 }
             ],
+            "name": "__callback",
+            "outputs": [],
             "payable": false,
             "stateMutability": "nonpayable",
             "type": "function"
@@ -112,11 +171,11 @@ export default {
             "constant": false,
             "inputs": [
                 {
-                    "name": "proposalId",
-                    "type": "uint256"
+                    "name": "pid",
+                    "type": "string"
                 }
             ],
-            "name": "forceCloseOnPrice",
+            "name": "cancelProposal",
             "outputs": [
                 {
                     "name": "",
@@ -150,11 +209,30 @@ export default {
             "constant": false,
             "inputs": [
                 {
-                    "name": "proposalId",
-                    "type": "uint256"
+                    "name": "pid",
+                    "type": "string"
                 }
             ],
             "name": "acceptProposal",
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "name": "pid",
+                    "type": "string"
+                }
+            ],
+            "name": "forceCloseOnExpiry",
             "outputs": [
                 {
                     "name": "",
@@ -177,7 +255,7 @@ export default {
                     "type": "address"
                 }
             ],
-            "name": "pendingReturns",
+            "name": "wallet",
             "outputs": [
                 {
                     "name": "",
@@ -192,43 +270,15 @@ export default {
             "constant": false,
             "inputs": [
                 {
-                    "name": "token",
-                    "type": "uint256"
-                },
-                {
-                    "name": "cashTokenAddress",
-                    "type": "address"
-                },
-                {
-                    "name": "vol",
-                    "type": "uint256"
-                },
-                {
-                    "name": "tokenAddress",
-                    "type": "address"
-                },
-                {
-                    "name": "nearLegPrice",
-                    "type": "uint256"
-                },
-                {
-                    "name": "term",
-                    "type": "uint256"
-                },
-                {
-                    "name": "farLegPrice",
-                    "type": "uint256"
-                },
-                {
-                    "name": "triggerPrice",
-                    "type": "uint256"
+                    "name": "pid",
+                    "type": "string"
                 }
             ],
-            "name": "createProposal",
+            "name": "settleProposal",
             "outputs": [
                 {
-                    "name": "proposalId",
-                    "type": "uint256"
+                    "name": "",
+                    "type": "bool"
                 }
             ],
             "payable": false,
@@ -236,17 +286,22 @@ export default {
             "type": "function"
         },
         {
-            "constant": true,
-            "inputs": [],
-            "name": "currentPrice",
+            "constant": false,
+            "inputs": [
+                {
+                    "name": "pid",
+                    "type": "string"
+                }
+            ],
+            "name": "forceCloseOnPrice",
             "outputs": [
                 {
                     "name": "",
-                    "type": "uint256"
+                    "type": "bool"
                 }
             ],
-            "payable": false,
-            "stateMutability": "view",
+            "payable": true,
+            "stateMutability": "payable",
             "type": "function"
         },
         {
@@ -264,53 +319,59 @@ export default {
             "type": "function"
         },
         {
-            "constant": false,
+            "anonymous": false,
             "inputs": [
                 {
+                    "indexed": true,
+                    "name": "status",
+                    "type": "uint8"
+                },
+                {
+                    "indexed": false,
                     "name": "proposalId",
-                    "type": "uint256"
+                    "type": "string"
                 }
             ],
-            "name": "cancelProposal",
-            "outputs": [
-                {
-                    "name": "",
-                    "type": "bool"
-                }
-            ],
-            "payable": false,
-            "stateMutability": "nonpayable",
-            "type": "function"
-        },
-        {
-            "constant": true,
-            "inputs": [
-                {
-                    "name": "",
-                    "type": "uint256"
-                }
-            ],
-            "name": "tokenToProposalIds",
-            "outputs": [
-                {
-                    "name": "",
-                    "type": "uint256"
-                }
-            ],
-            "payable": false,
-            "stateMutability": "view",
-            "type": "function"
+            "name": "LogProsposalEvent",
+            "type": "event"
         },
         {
             "anonymous": false,
             "inputs": [
+                {
+                    "indexed": true,
+                    "name": "errorId",
+                    "type": "uint8"
+                },
                 {
                     "indexed": false,
                     "name": "description",
                     "type": "string"
                 }
             ],
-            "name": "LogBadlaEvent",
+            "name": "LogError",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "name": "account",
+                    "type": "address"
+                },
+                {
+                    "indexed": true,
+                    "name": "token",
+                    "type": "address"
+                },
+                {
+                    "indexed": false,
+                    "name": "amount",
+                    "type": "uint256"
+                }
+            ],
+            "name": "LogWithdrawEvent",
             "type": "event"
         }
     ],
@@ -609,7 +670,7 @@ export default {
             "type": "event"
         }
     ],
-    "BadlaAddress": "0x2a7bbf3f4887287c222c5ec62337b68c0d1e6028",
-    "ERCXTokenAddress": "0xb69de693e07f280119cd017b780e6ae2648de7a4",
-    "WETHTokenAddress": "0xa3753d577114a095832727d43e5899c1c11fc68e"
+    "BadlaAddress": "0x006148896e7bbbacb0831ab2a3f147117d2857a2",
+    "ERCXTokenAddress": "0x95e9c94432df3bc79d30ec053afbbb546121754a",
+    "WETHTokenAddress": "0x088e41a584786caba1f3891ceb61cb99f07af4e0"
 }

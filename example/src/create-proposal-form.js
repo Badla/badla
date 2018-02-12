@@ -3,20 +3,13 @@ import { ProgressBar, Modal, FormGroup, ControlLabel, Button, Panel, Checkbox, R
 import FormInput from './form-input'
 import ABI from './abi'
 import BadlaJS from './badla'
-import Web3 from 'web3';
-import Transaction from './transaction'
 
 class CreateProposalForm extends React.Component {
 
-    transaction : Transaction
-    web3 : Web3
     badla : BadlaJS
 
     constructor(props) {
         super(props);
-        this.web3 = new Web3(window.web3.currentProvider);
-        this.transaction = new Transaction(window.web3.currentProvider);
-        console.log('Has web3 accounts - '+this.web3.eth.accounts.length);
         this.badla = new BadlaJS();
         this.state = {
             'validation' : {},
@@ -42,21 +35,15 @@ class CreateProposalForm extends React.Component {
         }
 
         this.setProposalCreatingState({progress:10, msg:"Waiting for token approval"});
-        //Allocate of dweth tokens to badla contract
-        var BadlaContract = this.web3.eth.contract(ABI.BadlaABI);
-        var ERCXTokenContract = this.web3.eth.contract(ABI.ERCXTokenABI);
-        var Badla = BadlaContract.at(ABI.BadlaAddress);
-        var WETHToken = ERCXTokenContract.at(ABI.WETHTokenAddress);
 
         var price = this.state.price;
         var returnPrice = this.state.returnPrice;
         var term = this.state.term;
         let quantity = this.state.quantity;
         let triggerPrice = this.state.forceSettlement ? this.state.triggerPrice : returnPrice;
-        let tokenId = Math.floor(Math.random() * 1000)
-        let account = this.web3.eth.accounts[0];
+        let priceUrl = this.state.forceSettlement ? this.state.priceUrl : "";
 
-        this.badla.createProposal(quantity, price, term, returnPrice, triggerPrice, (percent, msg) => {
+        this.badla.createProposal(quantity, price, term, returnPrice, triggerPrice, priceUrl, (percent, msg) => {
             this.setProposalCreatingState({progress:percent, msg:msg})
         }).then((proposalId) => {
             this.setProposalCreatingState({done:true, progress:100, msg:`Proposal created with id - "${proposalId}"`});
