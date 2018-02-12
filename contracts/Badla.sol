@@ -41,7 +41,7 @@ contract Badla {
 
     mapping(uint => Proposal) public proposals;
     mapping(uint => uint) public tokenToProposalIds;
-    mapping(address => mapping(address => uint)) public pendingReturns;
+    mapping(address => mapping(address => uint)) public wallet;
 
     uint public proposalCount;
 
@@ -96,7 +96,7 @@ contract Badla {
             return false;
         }
 
-        pendingReturns[msg.sender][p.cashTokenAddress] += p.vol;
+        wallet[msg.sender][p.cashTokenAddress] += p.vol;
 
         p.player = msg.sender;
         p.startTime = now;
@@ -117,9 +117,9 @@ contract Badla {
             return false;
         }
 
-        pendingReturns[p.player][p.tokenAddress] += (p.farLegPrice * p.vol);
-        pendingReturns[p.banker][p.cashTokenAddress] += p.vol;
-        pendingReturns[p.banker][p.cashTokenAddress] += ((p.nearLegPrice-p.farLegPrice) * p.vol);
+        wallet[p.player][p.tokenAddress] += (p.farLegPrice * p.vol);
+        wallet[p.banker][p.cashTokenAddress] += p.vol;
+        wallet[p.banker][p.cashTokenAddress] += ((p.nearLegPrice-p.farLegPrice) * p.vol);
 
         p.state = 5;
 
@@ -134,7 +134,7 @@ contract Badla {
         require(currentPrice > p.triggerPrice);
         require(p.banker == msg.sender);
 
-        pendingReturns[p.banker][p.tokenAddress] += (p.nearLegPrice * p.vol);
+        wallet[p.banker][p.tokenAddress] += (p.nearLegPrice * p.vol);
 
         p.state = 4;
 
@@ -149,7 +149,7 @@ contract Badla {
         require(now > (p.startTime + p.term));
         require(p.banker == msg.sender);
 
-        pendingReturns[p.banker][p.tokenAddress] += (p.nearLegPrice * p.vol);
+        wallet[p.banker][p.tokenAddress] += (p.nearLegPrice * p.vol);
 
         p.state = 3;
 
@@ -164,7 +164,7 @@ contract Badla {
         require(p.state == 0);
         require(p.banker == msg.sender);
 
-        pendingReturns[p.banker][p.cashTokenAddress] += p.vol;
+        wallet[p.banker][p.cashTokenAddress] += p.vol;
 
         p.state = 2;
 
@@ -173,14 +173,14 @@ contract Badla {
 
     function withdraw(address tokenAddress) public returns (bool) {
 
-        uint amount = pendingReturns[msg.sender][tokenAddress];
+        uint amount = wallet[msg.sender][tokenAddress];
 
         if (amount > 0) {
 
-            pendingReturns[msg.sender][tokenAddress] = 0;
+            wallet[msg.sender][tokenAddress] = 0;
 
             if (!ERC20Interface(tokenAddress).transferFrom(this, msg.sender, amount)) {
-                pendingReturns[msg.sender][tokenAddress] = amount;
+                wallet[msg.sender][tokenAddress] = amount;
                 return false;
             }
 
