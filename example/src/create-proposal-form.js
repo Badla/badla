@@ -4,25 +4,30 @@ import FormInput from './form-input'
 import ABI from './abi'
 import Web3 from 'web3';
 import Transaction from './transaction'
-const web3 = new Web3(window.web3.currentProvider);
 
 class CreateProposalForm extends React.Component {
 
     transaction : Transaction
+    web3 : Web3
 
     constructor(props) {
         super(props);
+        const hasWeb3 = window.web3 && window.web3.currentProvider;
+        if (hasWeb3) {
+            this.web3 = new Web3(window.web3.currentProvider);
+            this.transaction = new Transaction(window.web3.currentProvider);
+            console.log('Has web3 accounts - '+this.web3.eth.accounts.length);
+        }
         this.state = {
             'validation' : {},
             'valid': true,
+            'hasWeb3' : hasWeb3,
             'forceSettlement' : false
         };
-        this.transaction = new Transaction(window.web3.currentProvider);
-        console.log('Has web3 accounts - '+web3.eth.accounts.length);
     }
 
     getBlock(cb) {
-        web3.eth.getBlock('latest', function(err, res) {
+        this.web3.eth.getBlock('latest', function(err, res) {
             if (err) {
                 alert('Could not get latest block');
                 return;
@@ -32,7 +37,7 @@ class CreateProposalForm extends React.Component {
     }
 
     getGasPrice(cb) {
-        web3.eth.getGasPrice(function(err, res) {
+        this.web3.eth.getGasPrice(function(err, res) {
             if (err) {
                 alert('Could not get gas price');
                 return;
@@ -59,8 +64,8 @@ class CreateProposalForm extends React.Component {
 
         this.setProposalCreatingState({progress:10, msg:"Waiting for token approval"});
         //Allocate of dweth tokens to badla contract
-        var BadlaContract = web3.eth.contract(ABI.BadlaABI);
-        var ERCXTokenContract = web3.eth.contract(ABI.ERCXTokenABI);
+        var BadlaContract = this.web3.eth.contract(ABI.BadlaABI);
+        var ERCXTokenContract = this.web3.eth.contract(ABI.ERCXTokenABI);
         var Badla = BadlaContract.at(ABI.BadlaAddress);
         var WETHToken = ERCXTokenContract.at(ABI.WETHTokenAddress);
 
@@ -70,9 +75,9 @@ class CreateProposalForm extends React.Component {
         let quantity = this.state.quantity;
         let triggerPrice = this.state.forceSettlement ? this.state.triggerPrice : returnPrice;
         let tokenId = Math.floor(Math.random() * 1000)
-        let account = web3.eth.accounts[0];
+        let account = this.web3.eth.accounts[0];
         // let gas = web3.eth.getBlock('latest').gasLimit;
-        console.log("Approving token from - "+web3.eth.accounts[0])
+        console.log("Approving token from - "+this.web3.eth.accounts[0])
         WETHToken.approve(ABI.BadlaAddress, quantity, {from:account}, function(err, res) {
             if (err) {
                 this.setProposalCreatingState({done:true, progress:100, msg:"Could not get tokens", msgClass:"createError"});

@@ -84,6 +84,11 @@ ol, ul {
 
 .center {
     margin: 0 auto;
+    text-align: center;
+}
+
+.fullWidth {
+    width: 100%;
 }
 
 .half {
@@ -129,4 +134,8 @@ input[type=radio], input[type=checkbox] {
     height: 20px;
     width: 50px;
     margin-top: -13.5px;
+}
+
+.metamaskDownload {
+    margin-top: 2rem;
 }

@@ -4,21 +4,26 @@ import FormInput from './form-input'
 import ABI from './abi'
 import Web3 from 'web3';
 import Transaction from './transaction'
-const web3 = new Web3(window.web3.currentProvider);
 
 class FetchProposalForm extends React.Component {
 
     transaction : Transaction
-
+    web3 : Web3
+    
     constructor(props) {
         super(props);
+        const hasWeb3 = window.web3 && window.web3.currentProvider;
+        if (hasWeb3) {
+            this.web3 = new Web3(window.web3.currentProvider);
+            this.transaction = new Transaction(window.web3.currentProvider);
+            console.log('Has web3 accounts - '+this.web3.eth.accounts.length);
+        }
         this.state = {
             'validation' : {},
             'valid': true,
+            'hasWeb3' : hasWeb3,
             'forceSettlement' : false
         };
-        this.transaction = new Transaction(window.web3.currentProvider);
-        console.log('Has web3 accounts - '+web3.eth.accounts.length);
     }
 
     fetchProposal() {
@@ -28,11 +33,11 @@ class FetchProposalForm extends React.Component {
             return;
         }
         //Allocate of dweth tokens to badla contract
-        var BadlaContract = web3.eth.contract(ABI.BadlaABI);
+        var BadlaContract = this.web3.eth.contract(ABI.BadlaABI);
         var Badla = BadlaContract.at(ABI.BadlaAddress);
         var proposalId = this.state.proposalId;
 
-        // let gas = web3.eth.getBlock('latest').gasLimit;
+        // let gas = this.web3.eth.getBlock('latest').gasLimit;
         console.log("Fetching proposal for id - "+proposalId)
         Badla.proposals(proposalId, function(err, res) {
             if (err) {
