@@ -13,13 +13,9 @@ contract Badla is usingOraclize {
 
     enum Errors {
         INSUFFICIENT_BALANCE_OR_ALLOWANCE,
-        UNAUTHORIZED_ACCESS,
-        PROPOSAL_INVALID_STATUS,
-        TRIGGER_PRICE,
-        WALLET_ERROR
+        TRIGGER_PRICE
     }
 
-    event LogStatusEvent(uint8 indexed status, uint proposalId);
     event LogError(uint8 indexed errorId, string description);
 
     WalletLib.Wallet internal wallet;
@@ -37,7 +33,7 @@ contract Badla is usingOraclize {
             p.tokens.token2Address, p.terms.nearLegPrice,
             p.terms.term, p.terms.farLegPrice, p.triggerInfo.triggerPrice,
             p.triggerInfo.priceURL,
-            p.triggerAbove, p.status, p.startTime);
+            p.triggerInfo.triggerAbove, p.status, p.startTime);
     }
 
     function createProposal(string uuid,
@@ -137,12 +133,16 @@ contract Badla is usingOraclize {
 
         require(p.exists);
 
-        if (currentPrice > p.triggerInfo.triggerPrice) {
+        if ((p.triggerInfo.triggerAbove && currentPrice > p.triggerInfo.triggerPrice) ||
+            (!p.triggerInfo.triggerAbove && currentPrice < p.triggerInfo.triggerPrice)) {
+
             _forceCloseOnPrice(proposalId);
+            LogError(uint8(Errors.TRIGGER_PRICE),
+                    "Trigger breached. Settlement request approved");
         } else {
 
             LogError(uint8(Errors.TRIGGER_PRICE),
-                    "current price is below trigger price");
+                    "Trigger not breached. Settlement request rejected");
             p.resetAccepted();
         }
     }

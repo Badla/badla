@@ -322,23 +322,6 @@ export default {
             "inputs": [
                 {
                     "indexed": true,
-                    "name": "status",
-                    "type": "uint8"
-                },
-                {
-                    "indexed": false,
-                    "name": "proposalId",
-                    "type": "uint256"
-                }
-            ],
-            "name": "LogStatusEvent",
-            "type": "event"
-        },
-        {
-            "anonymous": false,
-            "inputs": [
-                {
-                    "indexed": true,
                     "name": "errorId",
                     "type": "uint8"
                 },
@@ -647,7 +630,7 @@ export default {
             "type": "event"
         }
     ],
-    "BadlaAddress": "0x9efec315e368e8812025b85b399a69513cd0e716",
-    "ERCXTokenAddress": "0xbbe595df857805ab3734f15be990f9a30cbb89f3",
-    "WETHTokenAddress": "0xd5e8aa91bda51688e6f3de82e52fb38e35298515"
+    "BadlaAddress": "0xe4e47451aad6c89a6d9e4ad104a7b77ffe1d3b36",
+    "ERCXTokenAddress": "0x3f6c622d32da3bc70730c9e677ec343cb5acfe68",
+    "WETHTokenAddress": "0x51fc52fd0b30fa0319d97893defe0201fed39c4c"
 }

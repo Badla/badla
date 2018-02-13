@@ -25,6 +25,7 @@ library ProposalsLib {
     struct TriggerInfo {
         string priceURL;
         uint triggerPrice;
+        bool triggerAbove;
     }
 
     struct Users {
@@ -45,7 +46,6 @@ library ProposalsLib {
         TriggerInfo triggerInfo;
         uint8 status;
         Tokens tokens;
-        bool triggerAbove;
         uint startTime; //in epoch
     }
 
@@ -66,9 +66,8 @@ library ProposalsLib {
         self.tokens = Tokens(token1Address, token2Address);
         self.users = Users(msg.sender, address(0));
         self.terms = Terms(vol, nearLegPrice, term, farLegPrice);
-        self.triggerInfo = TriggerInfo(priceURL, triggerPrice);
+        self.triggerInfo = TriggerInfo(priceURL, triggerPrice, triggerAbove);
         self.status = uint8(Status.NEW);
-        self.triggerAbove = triggerAbove;
 
         LogStatusEvent(self.status, self.proposalId);
     }
