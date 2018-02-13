@@ -203,13 +203,17 @@ class Badla {
         });
     }
 
-    acceptProposal(proposal) {
+    acceptProposal(proposal, statusCallback) {
         return new Promise((succ, err) => {
+            statusCallback(5, "Awaiting token approval...");
             this.approve(this.ERCXToken, (proposal.nearLegPrice * proposal.vol)).then((transactionId) => {
+                statusCallback(30, "Got token approval. Verifying...");
                 return this.blockChain.waitUntilMined(transactionId);
             }).then(()=>{
+                statusCallback(60, "Accepting proposal...");
                 return this._acceptProposal(proposal.id);
             }).then((tid)=>{
+                statusCallback(90, "Proposal accepted. Verifying...");
                 return this.blockChain.waitUntilMined(tid);
             }).then(() => {
                 succ();

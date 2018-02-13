@@ -150,8 +150,9 @@ class ProposalActions extends React.Component {
     }
 
     acceptProposal() {
-        this.setPerformingActionState({progress:10, msg:"Waiting for token approval"});
-        this.badla.acceptProposal(this.props.proposal).then(() => {
+        this.badla.acceptProposal(this.props.proposal, (progress, msg)=>{
+            this.setPerformingActionState({progress:progress, msg:msg});
+        }).then(() => {
             this.setPerformingActionState({done:true, progress:100, msg:`Proposal Accepted`});
             this.props.onChange(1, "Accepted");
         }).catch((err)=> {
