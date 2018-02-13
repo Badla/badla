@@ -21,19 +21,70 @@ class Badla {
         "SETTLED"
     ]
 
-    constructor() {
+    constructor(eventsCallback) {
         this.blockChain = new BlockChain();
         var ERCXTokenContract = this.blockChain.createContractFromABI(ABI.ERCXTokenABI);
         var BadlaContract = this.blockChain.createContractFromABI(ABI.BadlaABI);
         this.Badla = BadlaContract.at(ABI.BadlaAddress);
         this.WETHToken = ERCXTokenContract.at(ABI.WETHTokenAddress);
         this.ERCXToken = ERCXTokenContract.at(ABI.ERCXTokenAddress);
+        if (eventsCallback) {
+            this.Badla.allEvents((error, event) => {
+                if (error) {
+                    console.error(error);
+                    eventsCallback(error);
+                    return;
+                }
+                console.log(event);
+                eventsCallback(event);
+            });
+        }
     }
 
-    approve(quantity) {
+    getWETHTokenBalanceOf(address) {
+        return this.getTokenBalanceOf(this.WETHToken, address);
+    }
+
+    getERCXTokenBalanceOf(address) {
+        return this.getTokenBalanceOf(this.ERCXToken, address);
+    }
+
+    getTokenBalanceOf(token, address) {
+        return new Promise((succ, err) => {
+            token.balanceOf(address, (e, res) => {
+                if (e) {
+                    err(e)
+                } else {
+                    succ(res.toString(10))
+                }
+            });
+        });
+    }
+
+    getBadlaWalletWETHTokenBalanceOf(address) {
+        return this.getBadlaWalletBalanceOf(ABI.WETHTokenAddress, address);
+    }
+
+    getBadlaWalletERCXTokenBalanceOf(address) {
+        return this.getBadlaWalletBalanceOf(ABI.ERCXTokenAddress, address);
+    }
+
+    getBadlaWalletBalanceOf(tokenAddress, address) {
+        return new Promise((succ, err) => {
+            this.Badla.balanceOf(tokenAddress, {from:address}, (e, res) => {
+                if (e) {
+                    err(e)
+                } else {
+                    succ(res.toString(10))
+                }
+            });
+        });
+    }
+
+    approve(token, quantity) {
         return new Promise((succ, err) => {
             let account = this.blockChain.currentAccount();
-            this.WETHToken.approve(ABI.BadlaAddress, quantity, {from:account}, (e, res) => {
+            token.approve(ABI.BadlaAddress, quantity, {from:account}, (e, res) => {
                 if (e) {
                     err("Could not get token approval")
                 } else {
@@ -71,15 +122,15 @@ class Badla {
     createProposal(quantity, price, term, returnPrice, triggerPrice, priceUrl, reverseRepo, statusCallback) {
         return new Promise((succ, err) => {
             var proposalId = UUID();
-            statusCallback(0, "Waiting for token approval");
-            this.approve(quantity).then((transactionId) => {
-                statusCallback(20, "Got token approval. Verifying...");
+            statusCallback(5, "Waiting for token approval");
+            this.approve(this.WETHToken, quantity).then((transactionId) => {
+                statusCallback(30, "Got token approval. Verifying...");
                 return this.blockChain.waitUntilMined(transactionId);
             }).then(() => {
-                statusCallback(30, "Creating proposal");
+                statusCallback(60, "Creating proposal");
                 return this._createProposal(proposalId, quantity, price, term, returnPrice, triggerPrice, priceUrl, reverseRepo);
             }).then((transactionId) => {
-                statusCallback(70, "Proposal created. Verifying...");
+                statusCallback(90, "Proposal created. Verifying...");
                 return this.blockChain.waitUntilMined(transactionId);
             }).then(() => {
                 return this.fetchProposal(proposalId);
@@ -104,7 +155,7 @@ class Badla {
     }
 
     parseProposal(proposalId, rawArray) {
-        var badlaProperties = ["banker","player","cashTokenAddress","vol","tokenAddress","nearLegPrice","term","farLegPrice","triggerPrice","priceURL","isReverseRepo","status","startTime"];
+        var badlaProperties = ["banker","player","token1Address","vol","token2Address","nearLegPrice","term","farLegPrice","triggerPrice","priceURL","isReverseRepo","status","startTime"];
         var prettyProposal = {id:proposalId};
         rawArray.forEach((value, index) => {
             var key = badlaProperties[index];
@@ -114,12 +165,92 @@ class Badla {
         return prettyProposal;
     }
 
-    cancelProposal(proposalId) {
+    _cancelProposal(proposalId) {
         return new Promise((succ, err) => {
             let account = this.blockChain.currentAccount();
             this.Badla.cancelProposal(proposalId, {from:account}, (e, res) => {
                 if (e) {
                     err("Cancel proposal failed")
+                } else {
+                    succ(res);
+                }
+            });
+        });
+    }
+
+    cancelProposal(proposalId) {
+        return new Promise((succ, err) => {
+            this._cancelProposal(proposalId).then((tid)=>{
+                return this.blockChain.waitUntilMined(tid);
+            }).then(() => {
+                succ();
+            }).catch((e)=>{
+                err(e);
+            });
+        });
+    }
+
+    _acceptProposal(proposalId) {
+        return new Promise((succ, err) => {
+            let account = this.blockChain.currentAccount();
+            this.Badla.acceptProposal(proposalId, {from:account}, (e, res) => {
+                if (e) {
+                    err("Accept proposal failed")
+                } else {
+                    succ(res);
+                }
+            });
+        });
+    }
+
+    acceptProposal(proposal) {
+        return new Promise((succ, err) => {
+            this.approve(this.ERCXToken, (proposal.nearLegPrice * proposal.vol)).then((transactionId) => {
+                return this.blockChain.waitUntilMined(transactionId);
+            }).then(()=>{
+                return this._acceptProposal(proposal.id);
+            }).then((tid)=>{
+                return this.blockChain.waitUntilMined(tid);
+            }).then(() => {
+                succ();
+            }).catch((e)=>{
+                err(e);
+            });
+        });
+    }
+
+    settleProposal(proposalId) {
+        return new Promise((succ, err) => {
+            let account = this.blockChain.currentAccount();
+            this.Badla.settleProposal(proposalId, {from:account}, (e, res) => {
+                if (e) {
+                    err("Settle proposal failed")
+                } else {
+                    succ();
+                }
+            });
+        });
+    }
+
+    forceCloseOnPrice(proposalId) {
+        return new Promise((succ, err) => {
+            let account = this.blockChain.currentAccount();
+            this.Badla.forceCloseOnPrice(proposalId, {from:account}, (e, res) => {
+                if (e) {
+                    err("Force close proposal on price failed")
+                } else {
+                    succ();
+                }
+            });
+        });
+    }
+
+    forceCloseOnExpiry(proposalId) {
+        return new Promise((succ, err) => {
+            let account = this.blockChain.currentAccount();
+            this.Badla.forceCloseOnExpiry(proposalId, {from:account}, (e, res) => {
+                if (e) {
+                    err("Force close proposal on expiry failed")
                 } else {
                     succ();
                 }

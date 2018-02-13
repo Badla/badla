@@ -54,6 +54,17 @@ class BlockChain {
         return this.web3.eth.contract(abi);
     }
 
+    balanceOf(address) {
+        return new Promise((fulfill, reject) => {
+            this.web3.eth.getBalance(address, (e, res) => {
+                if (e) {
+                    reject(e)
+                } else {
+                    fulfill(this.web3.fromWei(res).toString(10))
+                }
+            });
+        });
+    }
 }
 
 export default BlockChain
