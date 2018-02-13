@@ -1,6 +1,5 @@
 var WalletLib = artifacts.require("./WalletLib.sol");
 var ProposalsLib = artifacts.require("./ProposalsLib.sol");
-var UUIDMapperLib = artifacts.require("./UUIDMapperLib.sol");
 
 var Badla = artifacts.require("./Badla.sol");
 var ERCXToken = artifacts.require("./ERCXToken.sol");
@@ -25,10 +24,8 @@ module.exports = function(deployer) {
         return new Promise(function(succ, fail) {
             deployer.deploy(WalletLib);
             deployer.deploy(ProposalsLib);
-            deployer.deploy(UUIDMapperLib);
             deployer.link(WalletLib, Badla);
             deployer.link(ProposalsLib, Badla);
-            deployer.link(UUIDMapperLib, Badla);
             deployer.deploy(Badla).then(function() {
                 contractInfo["BadlaAddress"] = Badla.address;
                 succ();

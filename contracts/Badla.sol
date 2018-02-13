@@ -2,7 +2,6 @@ pragma solidity ^0.4.11; // solhint-disable-line compiler-fixed
 import "./ERC20Interface.sol";
 import "./WalletLib.sol";
 import "./ProposalsLib.sol";
-import "./UUIDMapperLib.sol";
 import "./oraclizeAPI_0.5.sol"; // solhint-disable-line
 
 
@@ -10,7 +9,6 @@ contract Badla is usingOraclize {
 
     using WalletLib for WalletLib.Wallet;
     using ProposalsLib for ProposalsLib.Proposal;
-    using UUIDMapperLib for UUIDMapperLib.UUIDMapper;
 
     enum Errors {
         INSUFFICIENT_BALANCE_OR_ALLOWANCE,
@@ -24,20 +22,17 @@ contract Badla is usingOraclize {
     event LogError(uint8 indexed errorId, string description);
 
     WalletLib.Wallet internal wallet;
-    mapping(uint => ProposalsLib.Proposal) internal proposals;
-    UUIDMapperLib.UUIDMapper internal uuidMapper;
-    mapping(bytes32 => uint) public priceQueries;
-    uint public proposalsCount;
+    mapping(string => ProposalsLib.Proposal) internal proposals;
+    mapping(bytes32 => string) public priceQueries;
 
-    function getProposal(uint proposalId) public constant
+    function getProposal(string proposalId) public constant
         returns(address, uint, address, uint, uint, uint, uint, string, bool, uint, uint) {
 
-          ProposalsLib.Proposal memory p = proposals[proposalId];
+            ProposalsLib.Proposal memory p = proposals[proposalId];
 
-          return (p.tokens.cashTokenAddress, p.terms.vol, p.tokens.tokenAddress, p.terms.nearLegPrice,
+            return (p.tokens.cashTokenAddress, p.terms.vol, p.tokens.tokenAddress, p.terms.nearLegPrice,
             p.terms.term, p.terms.farLegPrice, p.triggerInfo.triggerPrice, p.triggerInfo.priceURL,
             p.isReverseRepo, p.status, p.startTime);
-
     }
 
     function createProposal(string uuid,
@@ -52,7 +47,7 @@ contract Badla is usingOraclize {
                             bool isReverseRepo) public returns (bool) {
 
         require(nearLegPrice > farLegPrice);
-        require(uuidMapper.isUUIDUnique(uuid));
+        require(!proposals[uuid].exists);
 
         if (!(ERC20Interface(cashTokenAddress).allowance(msg.sender, this) >= vol &&
             ERC20Interface(cashTokenAddress).transferFrom(msg.sender, this, vol))) {
@@ -60,20 +55,18 @@ contract Badla is usingOraclize {
             return false;
         }
 
-        proposalsCount += 1;
-
-        ProposalsLib.Proposal storage proposal = proposals[proposalsCount];
-        proposal.init(proposalsCount, cashTokenAddress, vol, tokenAddress, nearLegPrice, term,
+        ProposalsLib.Proposal storage proposal = proposals[uuid];
+        proposal.init(uuid, cashTokenAddress, vol, tokenAddress, nearLegPrice, term,
             farLegPrice, triggerPrice, priceURL, isReverseRepo);
-        uuidMapper.addIdentifier(uuid, proposalsCount);
 
         return true;
     }
 
-    function acceptProposal(uint pid) public returns (bool) {
+    function acceptProposal(string pid) public returns (bool) {
+
+        require(proposals[pid].exists);
 
         ProposalsLib.Proposal storage p = proposals[pid];
-
         require(p.canAccept());
 
         uint tokenAmount = p.terms.nearLegPrice * p.terms.vol;
@@ -90,7 +83,7 @@ contract Badla is usingOraclize {
         return true;
     }
 
-    function settleProposal(uint pid) public returns(bool) {
+    function settleProposal(string pid) public returns(bool) {
 
         ProposalsLib.Proposal storage p = proposals[pid];
         require(p.canSettle());
@@ -113,7 +106,7 @@ contract Badla is usingOraclize {
         return true;
     }
 
-    function forceCloseOnPrice(uint pid) public payable returns(bool) {
+    function forceCloseOnPrice(string pid) public payable returns(bool) {
 
         ProposalsLib.Proposal storage p = proposals[pid];
         require(p.canForceClose());
@@ -136,7 +129,7 @@ contract Badla is usingOraclize {
         if (msg.sender != oraclize_cbAddress()) revert();
 
         uint currentPrice = stringToUint(result);
-        uint proposalId = priceQueries[queryId];
+        string memory proposalId = priceQueries[queryId];
 
         ProposalsLib.Proposal storage p = proposals[proposalId];
 
@@ -152,7 +145,7 @@ contract Badla is usingOraclize {
         }
     }
 
-    function forceCloseOnExpiry(uint pid) public returns(bool) {
+    function forceCloseOnExpiry(string pid) public returns(bool) {
 
         ProposalsLib.Proposal storage p = proposals[pid];
         require(p.canForceClose());
@@ -165,7 +158,7 @@ contract Badla is usingOraclize {
         return true;
     }
 
-    function cancelProposal(uint pid) public returns (bool) {
+    function cancelProposal(string pid) public returns (bool) {
 
         ProposalsLib.Proposal storage p = proposals[pid];
         require(p.canCancel());
@@ -180,7 +173,7 @@ contract Badla is usingOraclize {
         return wallet.withdraw(tokenAddress);
     }
 
-    function balanceOf(address tokenAddress) public returns (uint) {
+    function balanceOf(address tokenAddress) public view returns (uint) {
         return wallet.balanceOf(msg.sender, tokenAddress);
     }
 
@@ -197,7 +190,7 @@ contract Badla is usingOraclize {
         }
     }
 
-    function _forceCloseOnPrice(uint pid) private returns(bool) {
+    function _forceCloseOnPrice(string pid) private returns(bool) {
 
         ProposalsLib.Proposal storage p = proposals[pid];
         require(p.canForceClose());

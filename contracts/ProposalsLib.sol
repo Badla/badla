@@ -14,7 +14,7 @@ library ProposalsLib {
         SETTLED
     }
 
-    event LogStatusEvent(uint8 indexed status, uint proposalId);
+    event LogStatusEvent(uint8 indexed status, string proposalId);
 
     struct Terms {
         uint vol;
@@ -39,7 +39,7 @@ library ProposalsLib {
     }
 
     struct Proposal {
-        uint proposalId;
+        string proposalId;
         bool exists;
         Users users;
         Terms terms;
@@ -51,7 +51,7 @@ library ProposalsLib {
     }
 
     function init(Proposal storage self,
-            uint proposalId,
+            string proposalId,
             address cashTokenAddress,
             uint vol,
             address tokenAddress,
