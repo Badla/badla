@@ -17,7 +17,10 @@ class CreateProposalForm extends React.Component {
             'forceSettlement' : false,
             'term' : 20
         };
-        this.termChange(this.state.term);
+    }
+
+    componentDidMount() {
+        this.termChange(20);
     }
 
     setProposalCreatingState(props) {
