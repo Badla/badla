@@ -5,75 +5,35 @@ export default {
     "BadlaABI": [
         {
             "constant": true,
-            "inputs": [
-                {
-                    "name": "pid",
-                    "type": "string"
-                }
-            ],
-            "name": "getProposal",
+            "inputs": [],
+            "name": "proposalsCount",
             "outputs": [
                 {
-                    "components": [
-                        {
-                            "name": "exists",
-                            "type": "bool"
-                        },
-                        {
-                            "name": "banker",
-                            "type": "address"
-                        },
-                        {
-                            "name": "player",
-                            "type": "address"
-                        },
-                        {
-                            "name": "vol",
-                            "type": "uint256"
-                        },
-                        {
-                            "name": "nearLegPrice",
-                            "type": "uint256"
-                        },
-                        {
-                            "name": "term",
-                            "type": "uint256"
-                        },
-                        {
-                            "name": "farLegPrice",
-                            "type": "uint256"
-                        },
-                        {
-                            "name": "triggerPrice",
-                            "type": "uint256"
-                        },
-                        {
-                            "name": "status",
-                            "type": "uint8"
-                        },
-                        {
-                            "name": "cashTokenAddress",
-                            "type": "address"
-                        },
-                        {
-                            "name": "tokenAddress",
-                            "type": "address"
-                        },
-                        {
-                            "name": "priceURL",
-                            "type": "string"
-                        },
-                        {
-                            "name": "startTime",
-                            "type": "uint256"
-                        }
-                    ],
                     "name": "",
-                    "type": "tuple"
+                    "type": "uint256"
                 }
             ],
             "payable": false,
             "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "name": "pid",
+                    "type": "uint256"
+                }
+            ],
+            "name": "settleProposal",
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "nonpayable",
             "type": "function"
         },
         {
@@ -98,7 +58,7 @@ export default {
             "constant": false,
             "inputs": [
                 {
-                    "name": "pid",
+                    "name": "uuid",
                     "type": "string"
                 },
                 {
@@ -132,9 +92,32 @@ export default {
                 {
                     "name": "priceURL",
                     "type": "string"
+                },
+                {
+                    "name": "isReverseRepo",
+                    "type": "bool"
                 }
             ],
             "name": "createProposal",
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "name": "pid",
+                    "type": "uint256"
+                }
+            ],
+            "name": "forceCloseOnExpiry",
             "outputs": [
                 {
                     "name": "",
@@ -172,18 +155,18 @@ export default {
             "inputs": [
                 {
                     "name": "pid",
-                    "type": "string"
+                    "type": "uint256"
                 }
             ],
-            "name": "cancelProposal",
+            "name": "forceCloseOnPrice",
             "outputs": [
                 {
                     "name": "",
                     "type": "bool"
                 }
             ],
-            "payable": false,
-            "stateMutability": "nonpayable",
+            "payable": true,
+            "stateMutability": "payable",
             "type": "function"
         },
         {
@@ -210,29 +193,10 @@ export default {
             "inputs": [
                 {
                     "name": "pid",
-                    "type": "string"
+                    "type": "uint256"
                 }
             ],
             "name": "acceptProposal",
-            "outputs": [
-                {
-                    "name": "",
-                    "type": "bool"
-                }
-            ],
-            "payable": false,
-            "stateMutability": "nonpayable",
-            "type": "function"
-        },
-        {
-            "constant": false,
-            "inputs": [
-                {
-                    "name": "pid",
-                    "type": "string"
-                }
-            ],
-            "name": "forceCloseOnExpiry",
             "outputs": [
                 {
                     "name": "",
@@ -263,14 +227,73 @@ export default {
             "type": "function"
         },
         {
+            "constant": true,
+            "inputs": [
+                {
+                    "name": "proposalId",
+                    "type": "uint256"
+                }
+            ],
+            "name": "getProposal",
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "address"
+                },
+                {
+                    "name": "",
+                    "type": "uint256"
+                },
+                {
+                    "name": "",
+                    "type": "address"
+                },
+                {
+                    "name": "",
+                    "type": "uint256"
+                },
+                {
+                    "name": "",
+                    "type": "uint256"
+                },
+                {
+                    "name": "",
+                    "type": "uint256"
+                },
+                {
+                    "name": "",
+                    "type": "uint256"
+                },
+                {
+                    "name": "",
+                    "type": "string"
+                },
+                {
+                    "name": "",
+                    "type": "bool"
+                },
+                {
+                    "name": "",
+                    "type": "uint256"
+                },
+                {
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
             "constant": false,
             "inputs": [
                 {
                     "name": "pid",
-                    "type": "string"
+                    "type": "uint256"
                 }
             ],
-            "name": "settleProposal",
+            "name": "cancelProposal",
             "outputs": [
                 {
                     "name": "",
@@ -279,25 +302,6 @@ export default {
             ],
             "payable": false,
             "stateMutability": "nonpayable",
-            "type": "function"
-        },
-        {
-            "constant": false,
-            "inputs": [
-                {
-                    "name": "pid",
-                    "type": "string"
-                }
-            ],
-            "name": "forceCloseOnPrice",
-            "outputs": [
-                {
-                    "name": "",
-                    "type": "bool"
-                }
-            ],
-            "payable": true,
-            "stateMutability": "payable",
             "type": "function"
         },
         {
@@ -312,7 +316,7 @@ export default {
             "outputs": [
                 {
                     "name": "",
-                    "type": "string"
+                    "type": "uint256"
                 }
             ],
             "payable": false,
@@ -330,10 +334,10 @@ export default {
                 {
                     "indexed": false,
                     "name": "proposalId",
-                    "type": "string"
+                    "type": "uint256"
                 }
             ],
-            "name": "LogProsposalEvent",
+            "name": "LogStatusEvent",
             "type": "event"
         },
         {
@@ -351,28 +355,6 @@ export default {
                 }
             ],
             "name": "LogError",
-            "type": "event"
-        },
-        {
-            "anonymous": false,
-            "inputs": [
-                {
-                    "indexed": true,
-                    "name": "account",
-                    "type": "address"
-                },
-                {
-                    "indexed": true,
-                    "name": "token",
-                    "type": "address"
-                },
-                {
-                    "indexed": false,
-                    "name": "amount",
-                    "type": "uint256"
-                }
-            ],
-            "name": "LogWithdrawEvent",
             "type": "event"
         }
     ],
@@ -671,7 +653,7 @@ export default {
             "type": "event"
         }
     ],
-    "BadlaAddress": "0x30753e4a8aad7f8597332e813735def5dd395028",
-    "ERCXTokenAddress": "0xfb88de099e13c3ed21f80a7a1e49f8caecf10df6",
-    "WETHTokenAddress": "0xaa588d3737b611bafd7bd713445b314bd453a5c8"
+    "BadlaAddress": "0x9fbda871d559710256a2502a2517b794b482db40",
+    "ERCXTokenAddress": "0x2c2b9c9a4a25e24b174f26114e8926a9f2128fe4",
+    "WETHTokenAddress": "0x30753e4a8aad7f8597332e813735def5dd395028"
 }
