@@ -1,8 +1,7 @@
 import React from 'react';
 import { Button, ButtonToolbar, Alert, Glyphicon } from 'react-bootstrap';
-import FormInput from './form-input'
-import ABI from './abi'
-import BadlaJS from './badla'
+import FormInput from '../components/form-input'
+import BadlaJS from '../eth/badla'
 
 class FetchProposalForm extends React.Component {
 

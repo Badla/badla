@@ -41,21 +41,21 @@ contract Badla is usingOraclize {
         uint startTime;
     }
 
-    mapping(string => Proposal) proposals;
+    mapping(uint => Proposal) public proposals;
     mapping(address => mapping(address => uint)) public wallet;
-    mapping(bytes32 => string) priceQueries;
+    mapping(bytes32 => uint) priceQueries;
 
     uint public proposalCount;
 
-    event LogProsposalEvent(uint8 indexed status, string proposalId);
+    event LogProsposalEvent(uint8 indexed status, uint proposalId);
     event LogError(uint8 indexed errorId, string description);
     event LogWithdrawEvent(address indexed account, address indexed token, uint amount);
 
-    function getProposal(string pid) public constant returns (Proposal) {
+    function getProposal(uint pid) public constant returns (Proposal) {
         return proposals[pid];
     }
 
-    function createProposal(string pid,
+    function createProposal(uint pid,
                             address cashTokenAddress,
                             uint vol,
                             address tokenAddress,
@@ -92,7 +92,7 @@ contract Badla is usingOraclize {
         return true;
     }
 
-    function acceptProposal(string pid) public returns (bool) {
+    function acceptProposal(uint pid) public returns (bool) {
 
         Proposal memory p = proposals[pid];
         require(p.exists);
@@ -118,7 +118,7 @@ contract Badla is usingOraclize {
         return true;
     }
 
-    function settleProposal(string pid) public returns(bool) {
+    function settleProposal(uint pid) public returns(bool) {
 
         Proposal storage p = proposals[pid];
         require(p.exists);
@@ -142,7 +142,7 @@ contract Badla is usingOraclize {
         return true;
     }
 
-    function forceCloseOnPrice(string pid) public payable returns(bool) {
+    function forceCloseOnPrice(uint pid) public payable returns(bool) {
 
         Proposal storage p = proposals[pid];
         require(p.exists);
@@ -169,7 +169,7 @@ contract Badla is usingOraclize {
         if (msg.sender != oraclize_cbAddress()) revert();
 
         uint currentPrice = stringToUint(result);
-        string memory pid = priceQueries[queryId];
+        uint pid = priceQueries[queryId];
 
         Proposal storage p = proposals[pid];
 
@@ -185,7 +185,7 @@ contract Badla is usingOraclize {
         }
     }
 
-    function forceCloseOnExpiry(string pid) public returns(bool) {
+    function forceCloseOnExpiry(uint pid) public returns(bool) {
 
         Proposal storage p = proposals[pid];
         require(p.exists);
@@ -202,7 +202,7 @@ contract Badla is usingOraclize {
         return true;
     }
 
-    function cancelProposal(string pid) public returns (bool) {
+    function cancelProposal(uint pid) public returns (bool) {
 
         Proposal storage p = proposals[pid];
         require(p.exists);
@@ -252,12 +252,12 @@ contract Badla is usingOraclize {
         }
     }
 
-    function doesProsposalExist(string pid) internal view returns (bool exists) {
+    function doesProsposalExist(uint pid) internal view returns (bool exists) {
         Proposal memory p = proposals[pid];
         return p.exists;
     }
 
-    function _forceCloseOnPrice(string pid) private returns(bool) {
+    function _forceCloseOnPrice(uint pid) private returns(bool) {
 
         Proposal storage p = proposals[pid];
         require(p.exists);

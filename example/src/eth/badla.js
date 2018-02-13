@@ -1,10 +1,10 @@
 import Web3 from 'web3';
 import ABI from './abi'
-import Transaction from './transaction'
+import BlockChain from './blockchain'
 
 class Badla {
 
-    transaction : Transaction
+    blockChain : BlockChain
     web3 : Web3
     DWETHToken : ERCXTokenContract
     ERCXToken : ERCXTokenContract
@@ -12,7 +12,7 @@ class Badla {
 
     constructor() {
         this.web3 = new Web3(window.web3.currentProvider);
-        this.transaction = new Transaction(this.web3);
+        this.blockChain = new BlockChain(this.web3);
         var ERCXTokenContract = this.web3.eth.contract(ABI.ERCXTokenABI);
         var BadlaContract = this.web3.eth.contract(ABI.BadlaABI);
         this.Badla = BadlaContract.at(ABI.BadlaAddress);
@@ -83,13 +83,13 @@ class Badla {
             statusCallback(0, "Waiting for token approval");
             this.approve(quantity).then((transactionId) => {
                 statusCallback(20, "Got token approval. Verifying...");
-                return this.transaction.waitUntilMined(transactionId);
+                return this.blockChain.waitUntilMined(transactionId);
             }).then(() => {
                 statusCallback(30, "Creating proposal");
                 return this._createProposal(proposalId, quantity, price, term, returnPrice, triggerPrice, priceUrl);
             }).then((transactionId) => {
                 statusCallback(70, "Proposal created. Verifying...");
-                return this.transaction.waitUntilMined(transactionId);
+                return this.blockChain.waitUntilMined(transactionId);
             }).then(() => {
                 succ(proposalId)
             }).catch((msg) => {

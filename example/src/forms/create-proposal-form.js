@@ -1,8 +1,8 @@
 import React from 'react';
 import { ProgressBar, Modal, FormGroup, ControlLabel, Button, Panel, Checkbox, Radio, Alert, Glyphicon } from 'react-bootstrap';
-import FormInput from './form-input'
-import ABI from './abi'
-import BadlaJS from './badla'
+import FormInput from '../components/form-input'
+import ABI from '../eth/abi'
+import BadlaJS from '../eth/badla'
 
 class CreateProposalForm extends React.Component {
 
