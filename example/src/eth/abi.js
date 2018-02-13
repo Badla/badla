@@ -96,7 +96,7 @@ export default {
                     "type": "string"
                 },
                 {
-                    "name": "cashTokenAddress",
+                    "name": "token1Address",
                     "type": "address"
                 },
                 {
@@ -104,7 +104,7 @@ export default {
                     "type": "uint256"
                 },
                 {
-                    "name": "tokenAddress",
+                    "name": "token2Address",
                     "type": "address"
                 },
                 {
@@ -128,7 +128,7 @@ export default {
                     "type": "string"
                 },
                 {
-                    "name": "isReverseRepo",
+                    "name": "triggerAbove",
                     "type": "bool"
                 }
             ],
@@ -647,7 +647,7 @@ export default {
             "type": "event"
         }
     ],
-    "BadlaAddress": "0x4eee4559bd589b1cdfc419f0eed2ff9cbd47f439",
-    "ERCXTokenAddress": "0xcb152a2aa90055a0d255ca7dbaeb85edfdc86096",
-    "WETHTokenAddress": "0x23e84570f7b28ad0d5e5545d398009194a8734f3"
+    "BadlaAddress": "0x9efec315e368e8812025b85b399a69513cd0e716",
+    "ERCXTokenAddress": "0xbbe595df857805ab3734f15be990f9a30cbb89f3",
+    "WETHTokenAddress": "0xd5e8aa91bda51688e6f3de82e52fb38e35298515"
 }
