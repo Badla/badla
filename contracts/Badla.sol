@@ -1,7 +1,7 @@
 pragma solidity ^0.4.11; // solhint-disable-line compiler-fixed
-import "./ERC20Interface.sol";
 import "./WalletLib.sol";
 import "./ProposalsLib.sol";
+import "./TokenTransferLib.sol";
 import "./oraclizeAPI_0.5.sol"; // solhint-disable-line
 
 
@@ -9,6 +9,7 @@ contract Badla is usingOraclize {
 
     using WalletLib for WalletLib.Wallet;
     using ProposalsLib for ProposalsLib.Proposal;
+    using TokenTransferLib for address;
 
     enum Errors {
         INSUFFICIENT_BALANCE_OR_ALLOWANCE,
@@ -32,36 +33,35 @@ contract Badla is usingOraclize {
 
             ProposalsLib.Proposal memory p = proposals[proposalId];
 
-            return (p.users.banker, p.users.player, p.tokens.cashTokenAddress, p.terms.vol,
-            p.tokens.tokenAddress, p.terms.nearLegPrice,
+            return (p.users.banker, p.users.player, p.tokens.token1Address, p.terms.vol,
+            p.tokens.token2Address, p.terms.nearLegPrice,
             p.terms.term, p.terms.farLegPrice, p.triggerInfo.triggerPrice,
             p.triggerInfo.priceURL,
-            p.isReverseRepo, p.status, p.startTime);
+            p.triggerAbove, p.status, p.startTime);
     }
 
     function createProposal(string uuid,
-                            address cashTokenAddress,
+                            address token1Address,
                             uint vol,
-                            address tokenAddress,
+                            address token2Address,
                             uint nearLegPrice,
                             uint term,
                             uint farLegPrice,
                             uint triggerPrice,
                             string priceURL,
-                            bool isReverseRepo) public returns (bool) {
+                            bool triggerAbove) public returns (bool) {
 
         require(nearLegPrice > farLegPrice);
         require(!proposals[uuid].exists);
 
-        if (!(ERC20Interface(cashTokenAddress).allowance(msg.sender, this) >= vol &&
-            ERC20Interface(cashTokenAddress).transferFrom(msg.sender, this, vol))) {
+        if (!(msg.sender.safeTransfer(this, token1Address, vol))) {
             LogError(uint8(Errors.INSUFFICIENT_BALANCE_OR_ALLOWANCE), "Insufficient balance to create prosposal");
             return false;
         }
 
         ProposalsLib.Proposal storage proposal = proposals[uuid];
-        proposal.init(uuid, cashTokenAddress, vol, tokenAddress, nearLegPrice, term,
-            farLegPrice, triggerPrice, priceURL, isReverseRepo);
+        proposal.init(uuid, token1Address, vol, token2Address, nearLegPrice, term,
+            farLegPrice, triggerPrice, priceURL, triggerAbove);
 
         return true;
     }
@@ -75,13 +75,12 @@ contract Badla is usingOraclize {
 
         uint tokenAmount = p.terms.nearLegPrice * p.terms.vol;
 
-        if (!(ERC20Interface(p.tokens.tokenAddress).allowance(msg.sender, this) >= tokenAmount &&
-            ERC20Interface(p.tokens.tokenAddress).transferFrom(msg.sender, this, tokenAmount))) {
+        if (!(msg.sender.safeTransfer(this, p.tokens.token2Address, tokenAmount))) {
             LogError(uint8(Errors.INSUFFICIENT_BALANCE_OR_ALLOWANCE), "Insufficient balance to accept prosposal");
             return false;
         }
 
-        wallet.sendTo(msg.sender, p.tokens.cashTokenAddress, p.terms.vol);
+        wallet.sendTo(msg.sender, p.tokens.token1Address, p.terms.vol);
         p.markAccepted(msg.sender);
 
         return true;
@@ -92,8 +91,7 @@ contract Badla is usingOraclize {
         ProposalsLib.Proposal storage p = proposals[pid];
         require(p.canSettle());
 
-        if (!(ERC20Interface(p.tokens.cashTokenAddress).allowance(msg.sender, this) >= p.terms.vol &&
-            ERC20Interface(p.tokens.cashTokenAddress).transferFrom(msg.sender, this, p.terms.vol))) {
+        if (!(msg.sender.safeTransfer(this, p.tokens.token1Address, p.terms.vol))) {
             LogError(uint8(Errors.INSUFFICIENT_BALANCE_OR_ALLOWANCE), "Insufficient balance to settle prosposal");
             return false;
         }
@@ -101,9 +99,9 @@ contract Badla is usingOraclize {
         uint playerAmount = (p.terms.farLegPrice * p.terms.vol);
         uint bankerAmount = ((p.terms.nearLegPrice-p.terms.farLegPrice) * p.terms.vol);
 
-        wallet.sendTo(p.users.player, p.tokens.tokenAddress, playerAmount);
-        wallet.sendTo(p.users.banker, p.tokens.cashTokenAddress, p.terms.vol);
-        wallet.sendTo(p.users.banker, p.tokens.tokenAddress, bankerAmount);
+        wallet.sendTo(p.users.player, p.tokens.token2Address, playerAmount);
+        wallet.sendTo(p.users.banker, p.tokens.token1Address, p.terms.vol);
+        wallet.sendTo(p.users.banker, p.tokens.token2Address, bankerAmount);
 
         p.markSettled();
 
@@ -155,7 +153,7 @@ contract Badla is usingOraclize {
         require(p.canForceClose());
         require(p.isExpired());
 
-        wallet.sendTo(p.users.banker, p.tokens.tokenAddress, (p.terms.nearLegPrice * p.terms.vol));
+        wallet.sendTo(p.users.banker, p.tokens.token2Address, (p.terms.nearLegPrice * p.terms.vol));
 
         p.markForceClosedOnExpiry();
 
@@ -167,7 +165,7 @@ contract Badla is usingOraclize {
         ProposalsLib.Proposal storage p = proposals[pid];
         require(p.canCancel());
 
-        wallet.sendTo(p.users.banker, p.tokens.cashTokenAddress, p.terms.vol);
+        wallet.sendTo(p.users.banker, p.tokens.token1Address, p.terms.vol);
         p.markCancelled();
 
         return true;
@@ -199,7 +197,7 @@ contract Badla is usingOraclize {
         ProposalsLib.Proposal storage p = proposals[pid];
         require(p.canForceClose());
 
-        wallet.sendTo(p.users.banker, p.tokens.tokenAddress, (p.terms.nearLegPrice * p.terms.vol));
+        wallet.sendTo(p.users.banker, p.tokens.token2Address, (p.terms.nearLegPrice * p.terms.vol));
         p.markForceClosedOnPrice();
 
         return true;

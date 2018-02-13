@@ -1,5 +1,4 @@
 pragma solidity ^0.4.11; // solhint-disable-line compiler-fixed
-import "./ERC20Interface.sol";
 
 
 library ProposalsLib {
@@ -34,8 +33,8 @@ library ProposalsLib {
     }
 
     struct Tokens {
-        address cashTokenAddress;
-        address tokenAddress;
+        address token1Address;
+        address token2Address;
     }
 
     struct Proposal {
@@ -46,30 +45,30 @@ library ProposalsLib {
         TriggerInfo triggerInfo;
         uint8 status;
         Tokens tokens;
-        bool isReverseRepo;
+        bool triggerAbove;
         uint startTime; //in epoch
     }
 
     function init(Proposal storage self,
             string proposalId,
-            address cashTokenAddress,
+            address token1Address,
             uint vol,
-            address tokenAddress,
+            address token2Address,
             uint nearLegPrice,
             uint term,
             uint farLegPrice,
             uint triggerPrice,
             string priceURL,
-            bool isReverseRepo) public {
+            bool triggerAbove) public {
 
         self.proposalId = proposalId;
         self.exists = true;
-        self.tokens = Tokens(cashTokenAddress, tokenAddress);
+        self.tokens = Tokens(token1Address, token2Address);
         self.users = Users(msg.sender, address(0));
         self.terms = Terms(vol, nearLegPrice, term, farLegPrice);
         self.triggerInfo = TriggerInfo(priceURL, triggerPrice);
         self.status = uint8(Status.NEW);
-        self.isReverseRepo = isReverseRepo;
+        self.triggerAbove = triggerAbove;
 
         LogStatusEvent(self.status, self.proposalId);
     }
