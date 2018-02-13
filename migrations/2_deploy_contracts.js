@@ -17,7 +17,7 @@ module.exports = function(deployer) {
 
     var tokenCreatorAddress = web3.eth.accounts[0];
     var bankerAddress = "0xEBEb62a3840Fbef657F18CeAeFB0aA93a7212736"; //web3.eth.accounts[1]; //Replace this with metamask account address
-    var playerAddress = web3.eth.accounts[2]; //Replace this with metamask account address
+    var playerAddress = "0x402681D45482c671719823634237F2A4b246828E"; //Replace this with metamask account address
     var initialTokens = 1000;
     var initialEther = 20;
 
@@ -40,7 +40,7 @@ module.exports = function(deployer) {
 
     function deployERCXToken() {
         return new Promise(function(succ, fail) {
-            deployer.deploy(ERCXToken, 50000, "ERCX", "ERCX").then(function() {
+            deployer.deploy(ERCXToken, 1000000, "ERCX", "ERCX").then(function() {
                 contractInfo["ERCXTokenAddress"] = ERCXToken.address;
                 succ();
             })
@@ -49,7 +49,7 @@ module.exports = function(deployer) {
 
     function deployWETHToken() {
         return new Promise(function(succ, fail) {
-            deployer.deploy(ERCXToken, 50000, "DWETH", "DWETH").then(function() {
+            deployer.deploy(ERCXToken, 10000, "DWETH", "DWETH").then(function() {
                 contractInfo["WETHTokenAddress"] = ERCXToken.address;
                 succ();
             })
@@ -84,8 +84,8 @@ module.exports = function(deployer) {
         transferEther(playerAddress, initialEther);
         log("Transfering initial "+initialTokens+" WETH tokens to banker")
         transferToken(contractInfo.ERCXTokenABI, contractInfo.WETHTokenAddress, bankerAddress, initialTokens);
-        log("Transfering intiial "+initialTokens+" ERCX tokens to player")
-        transferToken(contractInfo.ERCXTokenABI, contractInfo.ERCXTokenAddress, playerAddress, initialTokens);
+        log("Transfering intiial "+(initialTokens * 2000)+" ERCX tokens to player")
+        transferToken(contractInfo.ERCXTokenABI, contractInfo.ERCXTokenAddress, playerAddress, (initialTokens * 200));
     }
 
     function saveAbiAndAddressForWebapp() {
