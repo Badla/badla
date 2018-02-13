@@ -36,14 +36,14 @@ class CreateProposalForm extends React.Component {
 
         this.setProposalCreatingState({progress:10, msg:"Waiting for token approval"});
 
-        var price = this.state.price;
-        var returnPrice = this.state.returnPrice;
+        var nearLegPrice = this.state.nearLegPrice;
+        var farLegPrice = this.state.farLegPrice;
         var term = this.state.term;
-        let quantity = this.state.quantity;
-        let triggerPrice = this.state.forceSettlement ? this.state.triggerPrice : returnPrice;
+        let volume = this.state.volume;
+        let triggerPrice = this.state.forceSettlement ? this.state.triggerPrice : 0;
         let priceUrl = this.state.forceSettlement ? this.state.priceUrl : "";
 
-        this.badla.createProposal(quantity, price, term, returnPrice, triggerPrice, priceUrl, false, (percent, msg) => {
+        this.badla.createProposal(volume, nearLegPrice, term, farLegPrice, triggerPrice, priceUrl, false, (percent, msg) => {
             this.setProposalCreatingState({progress:percent, msg:msg})
         }).then((proposal) => {
             this.setProposalCreatingState({done:true, progress:100, userData:JSON.stringify(proposal, null, 4), msg:`Proposal created with id - "${proposal["id"]}"`});
@@ -109,26 +109,26 @@ class CreateProposalForm extends React.Component {
                       </p>
                     </Alert> : null }
                 <div className="clear hidden">
-                    <div className="half left"><FormInput alignClass="rightAlign" validator="address" onChange={this.stateChanged.bind(this)} id="lendingToken" label="Lending Token" value={ABI.WETHTokenAddress} placeholder="Enter Token Address" extraHelp="A ERC20 Token Address like 0xAbd123..." /></div>
-                    <div className="half right"><FormInput validator="address" onChange={this.stateChanged.bind(this)} id="desiredToken" label="Desired Token" value={ABI.ERCXTokenAddress} placeholder="Enter Token Name" extraHelp="A ERC20 Token Address like 0xAbd123..." /></div>
+                    <div className="half left"><FormInput alignClass="rightAlign" validator="address" onChange={this.stateChanged.bind(this)} id="lendingToken" value={ABI.WETHTokenAddress} placeholder="Enter Token Address" extraHelp="A ERC20 Token Address like 0xAbd123..." /></div>
+                    <div className="half right"><FormInput validator="address" onChange={this.stateChanged.bind(this)} id="desiredToken" value={ABI.ERCXTokenAddress} placeholder="Enter Token Name" extraHelp="A ERC20 Token Address like 0xAbd123..." /></div>
                 </div>
                 <div>
                     <div className="half left">
-                        <ControlLabel className="rightAlign">Lending Token</ControlLabel>
+                        <ControlLabel className="rightAlign">Cash Token</ControlLabel>
                         <div className="rightAlign tokenName">
                             WETH
                         </div>
                     </div>
                     <div className="half right">
                         <ControlLabel>
-                            Desired Token
+                            Token
                         </ControlLabel>
                         <div className="tokenName">ERCX</div>
                     </div>
                 </div>
                 <div>
-                    <div className="half left"><FormInput alignClass="rightAlign" validator="number" onChange={this.stateChanged.bind(this)} id="price" label="Price" value="2000" placeholder="Enter the price" extraHelp="For 1 lending token. Ex: 2000" /></div>
-                    <div className="half right"><FormInput validator="number" onChange={this.stateChanged.bind(this)} id="returnPrice" label="Return Price" value="1800" placeholder="Enter the return price" extraHelp="For 1 lending token after contract term ends. Ex: 1800" /></div>
+                    <div className="half left"><FormInput alignClass="rightAlign" validator="number" onChange={this.stateChanged.bind(this)} id="nearLegPrice" label="Near Leg Price" value="2000" placeholder="Enter the near leg price" extraHelp="For 1 lending token. Ex: 2000" /></div>
+                    <div className="half right"><FormInput validator="number" onChange={this.stateChanged.bind(this)} id="farLegPrice" label="Far Leg Price" value="1800" placeholder="Enter the far leg price" extraHelp="For 1 lending token after contract term ends. Ex: 1800" /></div>
                 </div>
                 <FormGroup>
                     <Radio className="marginRightRadio" name="radioGroup" inline>Repo</Radio>{' '}
@@ -158,7 +158,7 @@ class CreateProposalForm extends React.Component {
                         </Modal.Footer> : "" }
                     </Modal.Dialog>
                     : null }
-                <FormInput validator="number" onChange={this.stateChanged.bind(this)} id="quantity" label="Quantity" value="20" placeholder="Enter the quantity" extraHelp="Ex: 20" />
+                <FormInput validator="number" onChange={this.stateChanged.bind(this)} id="volume" label="Volume" value="20" placeholder="Enter the volume" extraHelp="Ex: 20" />
                 <FormInput validator="number" onChange={this.stateChanged.bind(this)} id="term" label="Term" value="20" placeholder="Enter the term in days" extraHelp="Ex: 15" />
                 <Checkbox onChange={this.toggleForceSettlementInfo.bind(this)}>
                     Trigger Forced Settlement

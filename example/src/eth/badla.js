@@ -95,8 +95,6 @@ class Badla {
         return new Promise((succ, err) => {
             this.Badla.getProposal(proposalId, (e, res) => {
                 if (e) {
-                    err("Error in fetching proposal")
-                } else if (!res[0]) {
                     err("Proposal not found")
                 } else {
                     succ(this.parseProposal(proposalId, res));
