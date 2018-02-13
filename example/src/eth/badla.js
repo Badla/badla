@@ -1,4 +1,3 @@
-import Web3 from 'web3';
 import ABI from './abi'
 import BlockChain from './blockchain'
 import hash from 'string-hash'
@@ -12,11 +11,20 @@ class Badla {
     ERCXToken : ERCXTokenContract
     Badla : BadlaContract
 
+    Status = [
+        "NEW",
+        "ACCEPTED",
+        "CANCELLED",
+        "FORCE_CLOSING",
+        "FORCE_CLOSED_EXPIRY",
+        "FORCE_CLOSED_PRICE",
+        "SETTLED"
+    ]
+
     constructor() {
-        this.web3 = new Web3(window.web3.currentProvider);
-        this.blockChain = new BlockChain(this.web3);
-        var ERCXTokenContract = this.web3.eth.contract(ABI.ERCXTokenABI);
-        var BadlaContract = this.web3.eth.contract(ABI.BadlaABI);
+        this.blockChain = new BlockChain();
+        var ERCXTokenContract = this.blockChain.createContractFromABI(ABI.ERCXTokenABI);
+        var BadlaContract = this.blockChain.createContractFromABI(ABI.BadlaABI);
         this.Badla = BadlaContract.at(ABI.BadlaAddress);
         this.WETHToken = ERCXTokenContract.at(ABI.WETHTokenAddress);
         this.ERCXToken = ERCXTokenContract.at(ABI.ERCXTokenAddress);
@@ -24,7 +32,7 @@ class Badla {
 
     approve(quantity) {
         return new Promise((succ, err) => {
-            let account = this.web3.eth.accounts[0];
+            let account = this.blockChain.currentAccount();
             this.WETHToken.approve(ABI.BadlaAddress, quantity, {from:account}, (e, res) => {
                 if (e) {
                     err("Could not get token approval")
@@ -37,7 +45,7 @@ class Badla {
 
     _createProposal(proposalId, quantity, price, term, returnPrice, triggerPrice, priceUrl) {
         return new Promise((succ, err) => {
-            let account = this.web3.eth.accounts[0];
+            let account = this.blockChain.currentAccount();
             this.Badla.createProposal(proposalId, ABI.WETHTokenAddress, quantity, ABI.ERCXTokenAddress, price, term, returnPrice, triggerPrice, priceUrl, {from:account}, (e, res) => {
                 if (e) {
                     err("Could not create proposal")
@@ -106,6 +114,7 @@ class Badla {
             prettyProposal[key] = value;
         })
         delete prettyProposal["exists"];
+        prettyProposal["statusFriendly"] = this.Status[prettyProposal["status"]];
         return prettyProposal;
     }
 }
