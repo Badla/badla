@@ -5,8 +5,8 @@ class BlockChain {
 
     web3 : Web3
 
-    constructor(web3) {
-        this.web3 = web3;
+    constructor() {
+        this.web3 = new Web3(window.web3.currentProvider);
     }
 
     getTransactionStatus(hash) : Promise {
@@ -44,6 +44,14 @@ class BlockChain {
             }
             this.checkTransactionStatusInLoop(hash, fulfill, reject);
         })
+    }
+
+    currentAccount() {
+        return this.web3.eth.accounts[0];
+    }
+
+    createContractFromABI(abi) {
+        return this.web3.eth.contract(abi);
     }
 
 }

@@ -5,9 +5,54 @@ export default {
     "BadlaABI": [
         {
             "constant": true,
-            "inputs": [],
-            "name": "proposalsCount",
+            "inputs": [
+                {
+                    "name": "proposalId",
+                    "type": "string"
+                }
+            ],
+            "name": "getProposal",
             "outputs": [
+                {
+                    "name": "",
+                    "type": "address"
+                },
+                {
+                    "name": "",
+                    "type": "uint256"
+                },
+                {
+                    "name": "",
+                    "type": "address"
+                },
+                {
+                    "name": "",
+                    "type": "uint256"
+                },
+                {
+                    "name": "",
+                    "type": "uint256"
+                },
+                {
+                    "name": "",
+                    "type": "uint256"
+                },
+                {
+                    "name": "",
+                    "type": "uint256"
+                },
+                {
+                    "name": "",
+                    "type": "string"
+                },
+                {
+                    "name": "",
+                    "type": "bool"
+                },
+                {
+                    "name": "",
+                    "type": "uint256"
+                },
                 {
                     "name": "",
                     "type": "uint256"
@@ -15,25 +60,6 @@ export default {
             ],
             "payable": false,
             "stateMutability": "view",
-            "type": "function"
-        },
-        {
-            "constant": false,
-            "inputs": [
-                {
-                    "name": "pid",
-                    "type": "uint256"
-                }
-            ],
-            "name": "settleProposal",
-            "outputs": [
-                {
-                    "name": "",
-                    "type": "bool"
-                }
-            ],
-            "payable": false,
-            "stateMutability": "nonpayable",
             "type": "function"
         },
         {
@@ -113,25 +139,6 @@ export default {
             "constant": false,
             "inputs": [
                 {
-                    "name": "pid",
-                    "type": "uint256"
-                }
-            ],
-            "name": "forceCloseOnExpiry",
-            "outputs": [
-                {
-                    "name": "",
-                    "type": "bool"
-                }
-            ],
-            "payable": false,
-            "stateMutability": "nonpayable",
-            "type": "function"
-        },
-        {
-            "constant": false,
-            "inputs": [
-                {
                     "name": "myid",
                     "type": "bytes32"
                 },
@@ -155,18 +162,18 @@ export default {
             "inputs": [
                 {
                     "name": "pid",
-                    "type": "uint256"
+                    "type": "string"
                 }
             ],
-            "name": "forceCloseOnPrice",
+            "name": "cancelProposal",
             "outputs": [
                 {
                     "name": "",
                     "type": "bool"
                 }
             ],
-            "payable": true,
-            "stateMutability": "payable",
+            "payable": false,
+            "stateMutability": "nonpayable",
             "type": "function"
         },
         {
@@ -193,7 +200,7 @@ export default {
             "inputs": [
                 {
                     "name": "pid",
-                    "type": "uint256"
+                    "type": "string"
                 }
             ],
             "name": "acceptProposal",
@@ -211,15 +218,15 @@ export default {
             "constant": false,
             "inputs": [
                 {
-                    "name": "tokenAddress",
-                    "type": "address"
+                    "name": "pid",
+                    "type": "string"
                 }
             ],
-            "name": "balanceOf",
+            "name": "forceCloseOnExpiry",
             "outputs": [
                 {
                     "name": "",
-                    "type": "uint256"
+                    "type": "bool"
                 }
             ],
             "payable": false,
@@ -230,52 +237,12 @@ export default {
             "constant": true,
             "inputs": [
                 {
-                    "name": "proposalId",
-                    "type": "uint256"
+                    "name": "tokenAddress",
+                    "type": "address"
                 }
             ],
-            "name": "getProposal",
+            "name": "balanceOf",
             "outputs": [
-                {
-                    "name": "",
-                    "type": "address"
-                },
-                {
-                    "name": "",
-                    "type": "uint256"
-                },
-                {
-                    "name": "",
-                    "type": "address"
-                },
-                {
-                    "name": "",
-                    "type": "uint256"
-                },
-                {
-                    "name": "",
-                    "type": "uint256"
-                },
-                {
-                    "name": "",
-                    "type": "uint256"
-                },
-                {
-                    "name": "",
-                    "type": "uint256"
-                },
-                {
-                    "name": "",
-                    "type": "string"
-                },
-                {
-                    "name": "",
-                    "type": "bool"
-                },
-                {
-                    "name": "",
-                    "type": "uint256"
-                },
                 {
                     "name": "",
                     "type": "uint256"
@@ -290,10 +257,10 @@ export default {
             "inputs": [
                 {
                     "name": "pid",
-                    "type": "uint256"
+                    "type": "string"
                 }
             ],
-            "name": "cancelProposal",
+            "name": "settleProposal",
             "outputs": [
                 {
                     "name": "",
@@ -302,6 +269,25 @@ export default {
             ],
             "payable": false,
             "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "name": "pid",
+                    "type": "string"
+                }
+            ],
+            "name": "forceCloseOnPrice",
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "payable": true,
+            "stateMutability": "payable",
             "type": "function"
         },
         {
@@ -316,7 +302,7 @@ export default {
             "outputs": [
                 {
                     "name": "",
-                    "type": "uint256"
+                    "type": "string"
                 }
             ],
             "payable": false,
@@ -653,7 +639,7 @@ export default {
             "type": "event"
         }
     ],
-    "BadlaAddress": "0x9fbda871d559710256a2502a2517b794b482db40",
-    "ERCXTokenAddress": "0x2c2b9c9a4a25e24b174f26114e8926a9f2128fe4",
-    "WETHTokenAddress": "0x30753e4a8aad7f8597332e813735def5dd395028"
+    "BadlaAddress": "0xa53205a2433abc37ace50184a870f703fb1ab438",
+    "ERCXTokenAddress": "0x7a6f9c302d4d7ca5ba146132cb594f59dd492b86",
+    "WETHTokenAddress": "0xa472ac788f08f8c316a648f849f2bdea47e4df09"
 }

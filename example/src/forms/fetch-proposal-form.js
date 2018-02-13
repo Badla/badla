@@ -25,7 +25,7 @@ class FetchProposalForm extends React.Component {
         var proposalId = this.state.proposalId;
         console.log(`Fetching proposal for id - ${proposalId}`)
         this.badla.fetchProposal(proposalId).then((proposal)=>{
-            this.setState({proposal:{status:"found", msg:`Proposal ${proposalId} details below - `, data:JSON.stringify(proposal, null, 4)}})
+            this.setState({proposal:{status:"found", msg:`Proposal ${proposalId} details below - `, data:proposal, asString:JSON.stringify(proposal, null, 4)}})
         }).catch((err)=> {
             this.setState({proposal:{status:"not-found",msg:err}})
         });
@@ -85,8 +85,8 @@ class FetchProposalForm extends React.Component {
                 : null }
                 { this.state.proposal && this.state.proposal.data ?
                 <div>
-                    <pre>{this.state.proposal.data}</pre>
-                    <ProposalActions />
+                    <pre>{this.state.proposal.asString}</pre>
+                    <ProposalActions currentAccount={this.badla.blockChain.currentAccount()} proposal={this.state.proposal.data} />
                 </div>
                 : null }
             </div>
@@ -97,11 +97,13 @@ class FetchProposalForm extends React.Component {
 class ProposalActions extends React.Component {
     constructor(props) {
         super(props);
+        var proposal = props.proposal;
+        var account = props.currentAccount;
         this.state = {
-            cancel:false,
-            accept:false,
+            cancel:(account === proposal["banker"] && proposal["statusFriendly"] === "NEW"),
+            accept:(account !== proposal["banker"] && proposal["statusFriendly"] === "NEW"),
             settle:false,
-            forceSettle:false
+            forceSettle:(account === proposal["banker"] && proposal["statusFriendly"] === "ACCEPTED")
         };
     }
 
