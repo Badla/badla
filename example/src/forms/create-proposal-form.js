@@ -1,7 +1,8 @@
 import React from 'react';
-import { DropdownButton, HelpBlock, MenuItem, ProgressBar, Modal, FormGroup, ControlLabel, Button, Panel, Checkbox, Radio } from 'react-bootstrap';
+import { DropdownButton, HelpBlock, MenuItem, FormGroup, ControlLabel, Button, Panel, Checkbox, Radio } from 'react-bootstrap';
 import FormInput from '../components/form-input'
 import Message from '../components/message'
+import ProgressDialog from '../components/progress-dialog'
 import ABI from '../eth/abi'
 import BadlaJS from '../eth/badla'
 
@@ -145,7 +146,7 @@ class CreateProposalForm extends React.Component {
                 <FormGroup>
                     <ControlLabel>Term</ControlLabel>
                     <br />
-                    <DropdownButton bsStyle="default" onSelect={this.termChange.bind(this)} title={this.state.term} id="term">
+                    <DropdownButton onSelect={this.termChange.bind(this)} title={this.state.term} id="term">
                        <MenuItem eventKey="1">1</MenuItem>
                        <MenuItem eventKey="5">5</MenuItem>
                        <MenuItem eventKey="10">10</MenuItem>
@@ -166,28 +167,14 @@ class CreateProposalForm extends React.Component {
                 </Panel> }
                 <Button bsStyle="primary" onClick={this.createProposal.bind(this)}>Create</Button>
                 {this.state.creatingProposal &&
-                    <Modal.Dialog>
-                        <Modal.Header>
-                            <Modal.Title>Creating Proposal...</Modal.Title>
-                        </Modal.Header>
-                        <Modal.Body>
-                            <div className={this.state.creatingProposal.msgClass}>{this.state.creatingProposal.msg}</div>
-                            <br></br>
-                            {this.state.creatingProposal.done ?
-                                this.state.creatingProposal.msgClass === "createError" ?
-                                    <ProgressBar bsStyle="danger" now={this.state.creatingProposal.progress} />
-                                    :
-                                    <div><ProgressBar bsStyle="success" now={this.state.creatingProposal.progress} />
-                                    <pre>{this.state.creatingProposal.userData}</pre></div>
-                                :
-                                <ProgressBar striped bsStyle="info" now={this.state.creatingProposal.progress} />
-                            }
-                        </Modal.Body>
-                        { this.state.creatingProposal.done &&
-                        <Modal.Footer>
-                            <Button bsStyle="primary" onClick={this.creatingProposalComplete.bind(this)}>Close</Button>
-                        </Modal.Footer>}
-                    </Modal.Dialog>
+                    <ProgressDialog
+                        title="Creating Proposal..."
+                        msg={this.state.creatingProposal.msg}
+                        msgClass={this.state.creatingProposal.msgClass}
+                        done={this.state.creatingProposal.done}
+                        userData={this.state.creatingProposal.userData}
+                        progress={this.state.creatingProposal.progress}
+                        onClose={this.creatingProposalComplete.bind(this)} />
                 }
                 { this.state.events && <pre>this.state.events</pre> }
             </div>

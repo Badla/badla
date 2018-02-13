@@ -36,12 +36,12 @@ class App extends React.Component {
                                 <ListGroupItem bsStyle="warning">MetaMask</ListGroupItem>
                                 <ListGroupItem bsStyle="success">Ether: {this.props.data.ether}</ListGroupItem>
                                 <ListGroupItem bsStyle="info">WETH : {this.props.data.WETH}</ListGroupItem>
-                                <ListGroupItem bsStyle="default">ERCX : {this.props.data.ERCX}</ListGroupItem>
+                                <ListGroupItem>ERCX : {this.props.data.ERCX}</ListGroupItem>
                             </ListGroup>
                             <ListGroup>
                                 <ListGroupItem bsStyle="warning">Badla Wallet</ListGroupItem>
                                 <ListGroupItem bsStyle="info">WETH : {this.props.data.BadlaWETH}</ListGroupItem>
-                                <ListGroupItem bsStyle="default">ERCX : {this.props.data.BadlaERCX}</ListGroupItem>
+                                <ListGroupItem>ERCX : {this.props.data.BadlaERCX}</ListGroupItem>
                             </ListGroup>
                         </div>
                     </div>
