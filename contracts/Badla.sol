@@ -1,12 +1,14 @@
 pragma solidity ^0.4.11; // solhint-disable-line compiler-fixed
-import "./WalletLib.sol";
-import "./ProposalsLib.sol";
-import "./TokenTransferLib.sol";
-import "./oraclizeAPI_0.5.sol"; // solhint-disable-line
+import "./libs/StringsLib.sol";
+import "./libs/WalletLib.sol";
+import "./libs/ProposalsLib.sol";
+import "./libs/TokenTransferLib.sol";
+import "./libs/oraclizeAPI_0.5.sol"; // solhint-disable-line
 
 
 contract Badla is usingOraclize {
 
+    using StringsLib for string;
     using WalletLib for WalletLib.Wallet;
     using ProposalsLib for ProposalsLib.Proposal;
     using TokenTransferLib for address;
@@ -126,7 +128,7 @@ contract Badla is usingOraclize {
 
         if (msg.sender != oraclize_cbAddress()) revert();
 
-        uint currentPrice = stringToUint(result);
+        uint currentPrice = result.toUint();
         string memory proposalId = priceQueries[queryId];
 
         ProposalsLib.Proposal storage p = proposals[proposalId];
@@ -177,19 +179,6 @@ contract Badla is usingOraclize {
 
     function balanceOf(address tokenAddress) public view returns (uint) {
         return wallet.balanceOf(msg.sender, tokenAddress);
-    }
-
-    function stringToUint(string s) internal pure returns (uint result) {
-
-        bytes memory b = bytes(s);
-        uint i;
-        result = 0;
-        for (i = 0; i < b.length; i++) {
-            uint c = uint(b[i]);
-            if (c >= 48 && c <= 57) {
-                result = result * 10 + (c - 48);
-            }
-        }
     }
 
     function _forceCloseOnPrice(string pid) private returns(bool) {

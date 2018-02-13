@@ -1,6 +1,7 @@
-var WalletLib = artifacts.require("./WalletLib.sol");
-var ProposalsLib = artifacts.require("./ProposalsLib.sol");
-var TokenTransferLib = artifacts.require("./TokenTransferLib");
+var StringsLib = artifacts.require("./libs/StringsLib.sol");
+var WalletLib = artifacts.require("./libs/WalletLib.sol");
+var ProposalsLib = artifacts.require("./libs/ProposalsLib.sol");
+var TokenTransferLib = artifacts.require("./libs/TokenTransferLib.sol");
 var Badla = artifacts.require("./Badla.sol");
 var ERCXToken = artifacts.require("./ERCXToken.sol");
 var fs = require('fs');
@@ -22,9 +23,11 @@ module.exports = function(deployer) {
 
     function deployBadla() {
         return new Promise(function(succ, fail) {
+            deployer.deploy(StringsLib);
             deployer.deploy(WalletLib);
             deployer.deploy(ProposalsLib);
             deployer.deploy(TokenTransferLib);
+            deployer.link(StringsLib, Badla);
             deployer.link(WalletLib, Badla);
             deployer.link(ProposalsLib, Badla);
             deployer.link(TokenTransferLib, Badla);

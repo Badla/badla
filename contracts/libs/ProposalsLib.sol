@@ -13,7 +13,7 @@ library ProposalsLib {
         SETTLED
     }
 
-    event LogStatusEvent(uint8 indexed status, string proposalId);
+    event LogStatusEvent(string indexed proposalId, uint8 indexed status);
 
     struct Terms {
         uint vol;
@@ -69,7 +69,7 @@ library ProposalsLib {
         self.triggerInfo = TriggerInfo(priceURL, triggerPrice, triggerAbove);
         self.status = uint8(Status.NEW);
 
-        LogStatusEvent(self.status, self.proposalId);
+        LogStatusEvent(self.proposalId, self.status);
     }
 
     function canCancel(Proposal self) internal view returns (bool) {
@@ -100,37 +100,37 @@ library ProposalsLib {
         self.users.player = player;
         self.startTime = block.timestamp;
         self.status = uint8(Status.ACCEPTED);
-        LogStatusEvent(self.status, self.proposalId);
+        LogStatusEvent(self.proposalId, self.status);
     }
 
     function resetAccepted(Proposal storage self) internal {
         self.status = uint8(Status.ACCEPTED);
-        LogStatusEvent(self.status, self.proposalId);
+        LogStatusEvent(self.proposalId, self.status);
     }
 
     function markCancelled(Proposal storage self) internal {
         self.status = uint8(Status.CANCELLED);
-        LogStatusEvent(self.status, self.proposalId);
+        LogStatusEvent(self.proposalId, self.status);
     }
 
     function markSettled(Proposal storage self) internal {
         self.status = uint8(Status.SETTLED);
-        LogStatusEvent(self.status, self.proposalId);
+        LogStatusEvent(self.proposalId, self.status);
     }
 
     function markForceClosing(Proposal storage self) internal {
         self.status = uint8(Status.FORCE_CLOSING);
-        LogStatusEvent(self.status, self.proposalId);
+        LogStatusEvent(self.proposalId, self.status);
     }
 
     function markForceClosedOnPrice(Proposal storage self) internal {
         self.status = uint8(Status.FORCE_CLOSED_PRICE);
-        LogStatusEvent(self.status, self.proposalId);
+        LogStatusEvent(self.proposalId, self.status);
     }
 
     function markForceClosedOnExpiry(Proposal storage self) internal {
         self.status = uint8(Status.FORCE_CLOSED_EXPIRY);
-        LogStatusEvent(self.status, self.proposalId);
+        LogStatusEvent(self.proposalId, self.status);
     }
 
 }
