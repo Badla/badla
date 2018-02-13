@@ -95,8 +95,6 @@ class Badla {
         return new Promise((succ, err) => {
             this.Badla.getProposal(proposalId, (e, res) => {
                 if (e) {
-                    err("Error in fetching proposal")
-                } else if (!res[0]) {
                     err("Proposal not found")
                 } else {
                     succ(this.parseProposal(proposalId, res));
@@ -106,7 +104,7 @@ class Badla {
     }
 
     parseProposal(proposalId, rawArray) {
-        var badlaProperties = ["cashTokenAddress","vol","tokenAddress","nearLegPrice","term","farLegPrice","triggerPrice","priceURL","isReverseRepo","status","startTime"];
+        var badlaProperties = ["banker","player","cashTokenAddress","vol","tokenAddress","nearLegPrice","term","farLegPrice","triggerPrice","priceURL","isReverseRepo","status","startTime"];
         var prettyProposal = {id:proposalId};
         rawArray.forEach((value, index) => {
             var key = badlaProperties[index];
@@ -114,6 +112,19 @@ class Badla {
         })
         prettyProposal["statusFriendly"] = this.Status[prettyProposal["status"]];
         return prettyProposal;
+    }
+
+    cancelProposal(proposalId) {
+        return new Promise((succ, err) => {
+            let account = this.blockChain.currentAccount();
+            this.Badla.cancelProposal(proposalId, {from:account}, (e, res) => {
+                if (e) {
+                    err("Cancel proposal failed")
+                } else {
+                    succ();
+                }
+            });
+        });
     }
 }
 
