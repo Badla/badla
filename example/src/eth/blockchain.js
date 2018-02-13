@@ -1,7 +1,7 @@
 import Web3 from 'web3';
 import Promise from 'promise'
 
-class Transaction {
+class BlockChain {
 
     web3 : Web3
 
@@ -48,4 +48,4 @@ class Transaction {
 
 }
 
-export default Transaction
+export default BlockChain

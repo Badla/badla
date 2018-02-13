@@ -1,10 +1,12 @@
 import Web3 from 'web3';
 import ABI from './abi'
-import Transaction from './transaction'
+import BlockChain from './blockchain'
+import hash from 'string-hash'
+import UUID from 'node-uuid'
 
 class Badla {
 
-    transaction : Transaction
+    blockChain : BlockChain
     web3 : Web3
     DWETHToken : ERCXTokenContract
     ERCXToken : ERCXTokenContract
@@ -12,7 +14,7 @@ class Badla {
 
     constructor() {
         this.web3 = new Web3(window.web3.currentProvider);
-        this.transaction = new Transaction(this.web3);
+        this.blockChain = new BlockChain(this.web3);
         var ERCXTokenContract = this.web3.eth.contract(ABI.ERCXTokenABI);
         var BadlaContract = this.web3.eth.contract(ABI.BadlaABI);
         this.Badla = BadlaContract.at(ABI.BadlaAddress);
@@ -58,33 +60,53 @@ class Badla {
         });
     }
 
-    UUID() {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-            var r = Math.random() * 16 | 0, v = c === 'x' ? r : ((r & 0x3) | 0x8);
-            return v.toString(16);
-        });
-    }
-
-
     createProposal(quantity, price, term, returnPrice, triggerPrice, priceUrl, statusCallback) {
         return new Promise((succ, err) => {
-            var proposalId = this.UUID();
+            var proposalId = hash(UUID());
             statusCallback(0, "Waiting for token approval");
             this.approve(quantity).then((transactionId) => {
                 statusCallback(20, "Got token approval. Verifying...");
-                return this.transaction.waitUntilMined(transactionId);
+                return this.blockChain.waitUntilMined(transactionId);
             }).then(() => {
                 statusCallback(30, "Creating proposal");
                 return this._createProposal(proposalId, quantity, price, term, returnPrice, triggerPrice, priceUrl);
             }).then((transactionId) => {
                 statusCallback(70, "Proposal created. Verifying...");
-                return this.transaction.waitUntilMined(transactionId);
+                return this.blockChain.waitUntilMined(transactionId);
             }).then(() => {
-                succ(proposalId)
+                return this.fetchProposal(proposalId);
+            }).then((proposal) => {
+                succ(proposal)
             }).catch((msg) => {
                 err(msg)
             });
         });
+    }
+
+    fetchProposal(proposalId) {
+        return new Promise((succ, err) => {
+            this.Badla.proposals(proposalId, (e, res) => {
+                if (e) {
+                    err("Error in fetching proposal")
+                } else if (!res[0]) {
+                    err("Proposal not found")
+                } else {
+                    succ(this.parseProposal(proposalId, res));
+                }
+            });
+        })
+    }
+
+    parseProposal(proposalId, rawArray) {
+        var badlaProperties = ABI.BadlaABI.filter(publicProperty => publicProperty["name"] === "proposals")[0]["outputs"];
+        badlaProperties = badlaProperties.map(badlaProperty => badlaProperty["name"]);
+        var prettyProposal = {id:proposalId};
+        rawArray.forEach((value, index) => {
+            var key = badlaProperties[index];
+            prettyProposal[key] = value;
+        })
+        delete prettyProposal["exists"];
+        return prettyProposal;
     }
 }
 

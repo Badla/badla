@@ -1,28 +1,18 @@
 import React from 'react';
-import { Button, Alert, Glyphicon } from 'react-bootstrap';
-import FormInput from './form-input'
-import ABI from './abi'
-import Web3 from 'web3';
-import Transaction from './transaction'
+import { Button, ButtonToolbar, Alert, Glyphicon } from 'react-bootstrap';
+import FormInput from '../components/form-input'
+import BadlaJS from '../eth/badla'
 
 class FetchProposalForm extends React.Component {
 
-    transaction : Transaction
-    web3 : Web3
+    badla : BadlaJS
 
     constructor(props) {
         super(props);
-        const hasWeb3 = window.web3 && window.web3.currentProvider;
-        if (hasWeb3) {
-            this.web3 = new Web3(window.web3.currentProvider);
-            this.transaction = new Transaction(window.web3.currentProvider);
-            console.log('Has web3 accounts - '+this.web3.eth.accounts.length);
-        }
+        this.badla = new BadlaJS();
         this.state = {
             'validation' : {},
-            'valid': true,
-            'hasWeb3' : hasWeb3,
-            'forceSettlement' : false
+            'valid': true
         };
     }
 
@@ -32,28 +22,13 @@ class FetchProposalForm extends React.Component {
         if (!valid) {
             return;
         }
-        //Allocate of dweth tokens to badla contract
-        var BadlaContract = this.web3.eth.contract(ABI.BadlaABI);
-        var Badla = BadlaContract.at(ABI.BadlaAddress);
         var proposalId = this.state.proposalId;
-
-        // let gas = this.web3.eth.getBlock('latest').gasLimit;
         console.log(`Fetching proposal for id - ${proposalId}`)
-        Badla.proposals(proposalId, (err, res) => {
-            if (err) {
-                alert("error in fetching proposal");
-                console.log(err);
-                return;
-            }
-            if (!res[0]) {
-                this.setState({proposal:{status:"not-found",msg:`Proposal ${proposalId} not found`}})
-                console.log("Proposal not found");
-                return;
-            }
-            console.log(res);
-            this.setState({proposal:{status:"found", msg:`Proposal ${proposalId} details below - `, data:JSON.stringify(res, null, 4)}})
-        })
-        // Make a json and show
+        this.badla.fetchProposal(proposalId).then((proposal)=>{
+            this.setState({proposal:{status:"found", msg:`Proposal ${proposalId} details below - `, data:JSON.stringify(proposal, null, 4)}})
+        }).catch((err)=> {
+            this.setState({proposal:{status:"not-found",msg:err}})
+        });
     }
 
     isValid() {
@@ -97,7 +72,7 @@ class FetchProposalForm extends React.Component {
                       </p>
                     </Alert> : null }
                 <div className="clear">
-                    <FormInput validator="number" onChange={this.stateChanged.bind(this)} id="proposalId" label="Proposal ID" placeholder="Enter Proposal Id" extraHelp="" />
+                    <FormInput onChange={this.stateChanged.bind(this)} id="proposalId" label="Proposal ID" placeholder="Enter Proposal Id" extraHelp="" />
                 </div>
                 <Button bsStyle="primary" onClick={this.fetchProposal.bind(this)}>Fetch</Button>
                 <br></br><br></br>
@@ -110,10 +85,51 @@ class FetchProposalForm extends React.Component {
                 : null }
                 { this.state.proposal && this.state.proposal.data ?
                 <div>
-                    <pre>{this.state.proposal.data}</pre></div>
+                    <pre>{this.state.proposal.data}</pre>
+                    <ProposalActions />
+                </div>
                 : null }
             </div>
         )
+    }
+}
+
+class ProposalActions extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            cancel:false,
+            accept:false,
+            settle:false,
+            forceSettle:false
+        };
+    }
+
+    cancelProposal() {
+
+    }
+
+    acceptProposal() {
+
+    }
+
+    settleProposal() {
+
+    }
+
+    forceSettleProposal() {
+
+    }
+
+    render() {
+        return (
+            <ButtonToolbar>
+                {this.state.cancel && <Button bsStyle="danger" onClick={this.cancelProposal.bind(this)}>Cancel</Button>}
+                {this.state.accept && <Button bsStyle="success" onClick={this.acceptProposal.bind(this)}>Accept</Button>}
+                {this.state.settle && <Button bsStyle="success" onClick={this.settleProposal.bind(this)}>Settle</Button>}
+                {this.state.forceSettle && <Button bsStyle="danger" onClick={this.forceSettleProposal.bind(this)}>Force Settle</Button>}
+            </ButtonToolbar>
+        );
     }
 }
 

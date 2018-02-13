@@ -1,8 +1,7 @@
-import './index.css';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import CreateProposalForm from './create-proposal-form'
-import FetchProposalForm from './fetch-proposal-form'
+import CreateProposalForm from './forms/create-proposal-form'
+import FetchProposalForm from './forms/fetch-proposal-form'
 import { BrowserRouter, Link, Route } from 'react-router-dom'
 import { Alert, Nav } from 'react-bootstrap';
 

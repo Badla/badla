@@ -1,8 +1,8 @@
 import React from 'react';
 import { ProgressBar, Modal, FormGroup, ControlLabel, Button, Panel, Checkbox, Radio, Alert, Glyphicon } from 'react-bootstrap';
-import FormInput from './form-input'
-import ABI from './abi'
-import BadlaJS from './badla'
+import FormInput from '../components/form-input'
+import ABI from '../eth/abi'
+import BadlaJS from '../eth/badla'
 
 class CreateProposalForm extends React.Component {
 
@@ -45,8 +45,8 @@ class CreateProposalForm extends React.Component {
 
         this.badla.createProposal(quantity, price, term, returnPrice, triggerPrice, priceUrl, (percent, msg) => {
             this.setProposalCreatingState({progress:percent, msg:msg})
-        }).then((proposalId) => {
-            this.setProposalCreatingState({done:true, progress:100, msg:`Proposal created with id - "${proposalId}"`});
+        }).then((proposal) => {
+            this.setProposalCreatingState({done:true, progress:100, userData:JSON.stringify(proposal, null, 4), msg:`Proposal created with id - "${proposal["id"]}"`});
         }).catch((msg) => {
             this.setProposalCreatingState({done:true, progress:100, msg:msg, msgClass:"createError"})
         })
@@ -146,7 +146,8 @@ class CreateProposalForm extends React.Component {
                                 this.state.creatingProposal.msgClass === "createError" ?
                                     <ProgressBar bsStyle="danger" now={this.state.creatingProposal.progress} />
                                     :
-                                    <ProgressBar bsStyle="success" now={this.state.creatingProposal.progress} />
+                                    <div><ProgressBar bsStyle="success" now={this.state.creatingProposal.progress} />
+                                    <pre>{this.state.creatingProposal.userData}</pre></div>
                                 :
                                 <ProgressBar striped bsStyle="info" now={this.state.creatingProposal.progress} />
                             }
