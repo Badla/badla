@@ -28,6 +28,8 @@ contract Badla is usingOraclize {
     function getProposal(string proposalId) public constant
         returns(address, uint, address, uint, uint, uint, uint, string, bool, uint, uint) {
 
+            require(proposals[proposalId].exists);
+
             ProposalsLib.Proposal memory p = proposals[proposalId];
 
             return (p.tokens.cashTokenAddress, p.terms.vol, p.tokens.tokenAddress, p.terms.nearLegPrice,
