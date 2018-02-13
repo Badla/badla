@@ -1,6 +1,8 @@
 import Web3 from 'web3';
 import ABI from './abi'
 import BlockChain from './blockchain'
+import hash from 'string-hash'
+import UUID from 'node-uuid'
 
 class Badla {
 
@@ -58,28 +60,9 @@ class Badla {
         });
     }
 
-    UUID() {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-            var r = Math.random() * 16 | 0, v = c === 'x' ? r : ((r & 0x3) | 0x8);
-            return v.toString(16);
-        });
-    }
-
-    hashCode(str) {
-        var hash = 0, i, chr;
-        if (str.length === 0) return hash;
-        for (i = 0; i < str.length; i++) {
-            chr   = str.charCodeAt(i);
-            hash  = ((hash << 5) - hash) + chr;
-            hash |= 0; // Convert to 32bit integer
-        }
-        return hash;
-    }
-
-
     createProposal(quantity, price, term, returnPrice, triggerPrice, priceUrl, statusCallback) {
         return new Promise((succ, err) => {
-            var proposalId = this.hashCode(this.UUID());
+            var proposalId = hash(UUID());
             statusCallback(0, "Waiting for token approval");
             this.approve(quantity).then((transactionId) => {
                 statusCallback(20, "Got token approval. Verifying...");
@@ -91,7 +74,9 @@ class Badla {
                 statusCallback(70, "Proposal created. Verifying...");
                 return this.blockChain.waitUntilMined(transactionId);
             }).then(() => {
-                succ(proposalId)
+                return this.fetchProposal(proposalId);
+            }).then((proposal) => {
+                succ(proposal)
             }).catch((msg) => {
                 err(msg)
             });
@@ -106,10 +91,22 @@ class Badla {
                 } else if (!res[0]) {
                     err("Proposal not found")
                 } else {
-                    succ(res)
+                    succ(this.parseProposal(proposalId, res));
                 }
             });
         })
+    }
+
+    parseProposal(proposalId, rawArray) {
+        var badlaProperties = ABI.BadlaABI.filter(publicProperty => publicProperty["name"] === "proposals")[0]["outputs"];
+        badlaProperties = badlaProperties.map(badlaProperty => badlaProperty["name"]);
+        var prettyProposal = {id:proposalId};
+        rawArray.forEach((value, index) => {
+            var key = badlaProperties[index];
+            prettyProposal[key] = value;
+        })
+        delete prettyProposal["exists"];
+        return prettyProposal;
     }
 }
 

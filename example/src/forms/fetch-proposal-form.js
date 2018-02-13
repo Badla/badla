@@ -29,20 +29,6 @@ class FetchProposalForm extends React.Component {
         }).catch((err)=> {
             this.setState({proposal:{status:"not-found",msg:err}})
         });
-        // this.Badla.proposals(proposalId, (err, res) => {
-        //     if (err) {
-        //         alert("error in fetching proposal");
-        //         console.log(err);
-        //         return;
-        //     }
-        //     if (!res[0]) {
-        //         this.setState({proposal:{status:"not-found",msg:`Proposal ${proposalId} not found`}})
-        //         console.log("Proposal not found");
-        //         return;
-        //     }
-        //     console.log(res);
-        //     this.setState({proposal:{status:"found", msg:`Proposal ${proposalId} details below - `, data:JSON.stringify(res, null, 4)}})
-        // })
     }
 
     isValid() {
@@ -100,16 +86,50 @@ class FetchProposalForm extends React.Component {
                 { this.state.proposal && this.state.proposal.data ?
                 <div>
                     <pre>{this.state.proposal.data}</pre>
-                    <ButtonToolbar>
-                        <Button bsStyle="danger" onClick={this.fetchProposal.bind(this)}>Cancel</Button>
-                        <Button bsStyle="success" onClick={this.fetchProposal.bind(this)}>Accept</Button>
-                        <Button bsStyle="success" onClick={this.fetchProposal.bind(this)}>Settle</Button>
-                        <Button bsStyle="danger" onClick={this.fetchProposal.bind(this)}>Force Settle</Button>
-                    </ButtonToolbar>
+                    <ProposalActions />
                 </div>
                 : null }
             </div>
         )
+    }
+}
+
+class ProposalActions extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            cancel:false,
+            accept:false,
+            settle:false,
+            forceSettle:false
+        };
+    }
+
+    cancelProposal() {
+
+    }
+
+    acceptProposal() {
+
+    }
+
+    settleProposal() {
+
+    }
+
+    forceSettleProposal() {
+
+    }
+
+    render() {
+        return (
+            <ButtonToolbar>
+                {this.state.cancel && <Button bsStyle="danger" onClick={this.cancelProposal.bind(this)}>Cancel</Button>}
+                {this.state.accept && <Button bsStyle="success" onClick={this.acceptProposal.bind(this)}>Accept</Button>}
+                {this.state.settle && <Button bsStyle="success" onClick={this.settleProposal.bind(this)}>Settle</Button>}
+                {this.state.forceSettle && <Button bsStyle="danger" onClick={this.forceSettleProposal.bind(this)}>Force Settle</Button>}
+            </ButtonToolbar>
+        );
     }
 }
 
