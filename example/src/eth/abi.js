@@ -19,6 +19,14 @@ export default {
                 },
                 {
                     "name": "",
+                    "type": "address"
+                },
+                {
+                    "name": "",
+                    "type": "address"
+                },
+                {
+                    "name": "",
                     "type": "uint256"
                 },
                 {
@@ -639,7 +647,7 @@ export default {
             "type": "event"
         }
     ],
-    "BadlaAddress": "0xf96b04aec05f816ecfa5953de27971fe5cea61af",
-    "ERCXTokenAddress": "0xe145040a82066cc65a34baa25f9835fecbe4cda3",
-    "WETHTokenAddress": "0xc6a8cd2b5b1483997d8aac7edfc9632a7dde5392"
+    "BadlaAddress": "0x4eee4559bd589b1cdfc419f0eed2ff9cbd47f439",
+    "ERCXTokenAddress": "0xcb152a2aa90055a0d255ca7dbaeb85edfdc86096",
+    "WETHTokenAddress": "0x23e84570f7b28ad0d5e5545d398009194a8734f3"
 }

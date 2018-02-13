@@ -26,14 +26,16 @@ contract Badla is usingOraclize {
     mapping(bytes32 => string) public priceQueries;
 
     function getProposal(string proposalId) public constant
-        returns(address, uint, address, uint, uint, uint, uint, string, bool, uint, uint) {
+        returns(address, address, address, uint, address, uint, uint, uint, uint, string, bool, uint, uint) {
 
             require(proposals[proposalId].exists);
 
             ProposalsLib.Proposal memory p = proposals[proposalId];
 
-            return (p.tokens.cashTokenAddress, p.terms.vol, p.tokens.tokenAddress, p.terms.nearLegPrice,
-            p.terms.term, p.terms.farLegPrice, p.triggerInfo.triggerPrice, p.triggerInfo.priceURL,
+            return (p.users.banker, p.users.player, p.tokens.cashTokenAddress, p.terms.vol,
+            p.tokens.tokenAddress, p.terms.nearLegPrice,
+            p.terms.term, p.terms.farLegPrice, p.triggerInfo.triggerPrice,
+            p.triggerInfo.priceURL,
             p.isReverseRepo, p.status, p.startTime);
     }
 
