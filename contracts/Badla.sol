@@ -1,19 +1,14 @@
 pragma solidity ^0.4.11; // solhint-disable-line compiler-fixed
 import "./ERC20Interface.sol";
+import "./WalletLib.sol";
+import "./ProposalsLib.sol";
 import "./oraclizeAPI_0.5.sol"; // solhint-disable-line
 
 
 contract Badla is usingOraclize {
 
-    enum Status {
-        NEW,
-        ACCEPTED,
-        CANCELLED,
-        FORCE_CLOSING,
-        FORCE_CLOSED_EXPIRY,
-        FORCE_CLOSED_PRICE,
-        SETTLED
-    }
+    using WalletLib for WalletLib.Wallet;
+    using ProposalsLib for ProposalsLib.Proposal;
 
     enum Errors {
         INSUFFICIENT_BALANCE_OR_ALLOWANCE,
@@ -23,39 +18,24 @@ contract Badla is usingOraclize {
         WALLET_ERROR
     }
 
-    //Two tokens are ETHX and BWETH
-    struct Proposal {
-
-        bool exists;
-        address banker;
-        address player;
-        uint vol;
-        uint nearLegPrice;
-        uint term;
-        uint farLegPrice;
-        uint triggerPrice;
-        uint8 status;
-        address cashTokenAddress;
-        address tokenAddress;
-        string priceURL;
-        uint startTime;
-    }
-
-    mapping(string => Proposal) proposals;
-    mapping(address => mapping(address => uint)) public wallet;
-    mapping(bytes32 => string) priceQueries;
-
-    uint public proposalCount;
-
-    event LogProsposalEvent(uint8 indexed status, string proposalId);
+    event LogStatusEvent(uint8 indexed status, uint proposalId);
     event LogError(uint8 indexed errorId, string description);
-    event LogWithdrawEvent(address indexed account, address indexed token, uint amount);
 
-    function getProposal(string pid) public constant returns (Proposal) {
-        return proposals[pid];
+    WalletLib.Wallet internal wallet;
+    mapping(string => ProposalsLib.Proposal) internal proposals;
+    mapping(bytes32 => string) public priceQueries;
+
+    function getProposal(string proposalId) public constant
+        returns(address, uint, address, uint, uint, uint, uint, string, bool, uint, uint) {
+
+            ProposalsLib.Proposal memory p = proposals[proposalId];
+
+            return (p.tokens.cashTokenAddress, p.terms.vol, p.tokens.tokenAddress, p.terms.nearLegPrice,
+            p.terms.term, p.terms.farLegPrice, p.triggerInfo.triggerPrice, p.triggerInfo.priceURL,
+            p.isReverseRepo, p.status, p.startTime);
     }
 
-    function createProposal(string pid,
+    function createProposal(string uuid,
                             address cashTokenAddress,
                             uint vol,
                             address tokenAddress,
@@ -63,10 +43,11 @@ contract Badla is usingOraclize {
                             uint term,
                             uint farLegPrice,
                             uint triggerPrice,
-                            string priceURL) public returns (bool) {
+                            string priceURL,
+                            bool isReverseRepo) public returns (bool) {
 
         require(nearLegPrice > farLegPrice);
-        require(!doesProsposalExist(pid));
+        require(!proposals[uuid].exists);
 
         if (!(ERC20Interface(cashTokenAddress).allowance(msg.sender, this) >= vol &&
             ERC20Interface(cashTokenAddress).transferFrom(msg.sender, this, vol))) {
@@ -74,92 +55,71 @@ contract Badla is usingOraclize {
             return false;
         }
 
-        Proposal storage p = proposals[pid];
-        p.cashTokenAddress = cashTokenAddress;
-        p.tokenAddress = tokenAddress;
-        p.exists = true;
-        p.banker = msg.sender;
-        p.vol = vol;
-        p.term = term * 3600;
-        p.nearLegPrice = nearLegPrice;
-        p.farLegPrice = farLegPrice;
-        p.triggerPrice = triggerPrice;
-        p.priceURL = priceURL;
-        p.status = uint8(Status.NEW);
-
-        LogProsposalEvent(uint8(Status.NEW), pid);
+        ProposalsLib.Proposal storage proposal = proposals[uuid];
+        proposal.init(uuid, cashTokenAddress, vol, tokenAddress, nearLegPrice, term,
+            farLegPrice, triggerPrice, priceURL, isReverseRepo);
 
         return true;
     }
 
     function acceptProposal(string pid) public returns (bool) {
 
-        Proposal memory p = proposals[pid];
-        require(p.exists);
-        require(p.status == 0);
-        require(p.banker != msg.sender);
+        require(proposals[pid].exists);
 
-        uint tokenAmount = p.nearLegPrice * p.vol;
+        ProposalsLib.Proposal storage p = proposals[pid];
+        require(p.canAccept());
 
-        if (!(ERC20Interface(p.tokenAddress).allowance(msg.sender, this) >= tokenAmount &&
-            ERC20Interface(p.tokenAddress).transferFrom(msg.sender, this, tokenAmount))) {
+        uint tokenAmount = p.terms.nearLegPrice * p.terms.vol;
+
+        if (!(ERC20Interface(p.tokens.tokenAddress).allowance(msg.sender, this) >= tokenAmount &&
+            ERC20Interface(p.tokens.tokenAddress).transferFrom(msg.sender, this, tokenAmount))) {
             LogError(uint8(Errors.INSUFFICIENT_BALANCE_OR_ALLOWANCE), "Insufficient balance to accept prosposal");
             return false;
         }
 
-        wallet[msg.sender][p.cashTokenAddress] += p.vol;
-
-        p.player = msg.sender;
-        p.startTime = block.timestamp;
-        p.status = uint8(Status.ACCEPTED);
-
-        LogProsposalEvent(uint8(Status.ACCEPTED), pid);
+        wallet.sendTo(msg.sender, p.tokens.cashTokenAddress, p.terms.vol);
+        p.markAccepted(msg.sender);
 
         return true;
     }
 
     function settleProposal(string pid) public returns(bool) {
 
-        Proposal storage p = proposals[pid];
-        require(p.exists);
-        require(p.status == 1);
-        require(p.player == msg.sender);
+        ProposalsLib.Proposal storage p = proposals[pid];
+        require(p.canSettle());
 
-        if (!(ERC20Interface(p.cashTokenAddress).allowance(msg.sender, this) >= p.vol &&
-            ERC20Interface(p.cashTokenAddress).transferFrom(msg.sender, this, p.vol))) {
+        if (!(ERC20Interface(p.tokens.cashTokenAddress).allowance(msg.sender, this) >= p.terms.vol &&
+            ERC20Interface(p.tokens.cashTokenAddress).transferFrom(msg.sender, this, p.terms.vol))) {
             LogError(uint8(Errors.INSUFFICIENT_BALANCE_OR_ALLOWANCE), "Insufficient balance to settle prosposal");
             return false;
         }
 
-        wallet[p.player][p.tokenAddress] += (p.farLegPrice * p.vol);
-        wallet[p.banker][p.cashTokenAddress] += p.vol;
-        wallet[p.banker][p.cashTokenAddress] += ((p.nearLegPrice-p.farLegPrice) * p.vol);
+        uint playerAmount = (p.terms.farLegPrice * p.terms.vol);
+        uint bankerAmount = ((p.terms.nearLegPrice-p.terms.farLegPrice) * p.terms.vol);
 
-        p.status = uint8(Status.SETTLED);
+        wallet.sendTo(p.users.player, p.tokens.tokenAddress, playerAmount);
+        wallet.sendTo(p.users.banker, p.tokens.cashTokenAddress, p.terms.vol);
+        wallet.sendTo(p.users.banker, p.tokens.tokenAddress, bankerAmount);
 
-        LogProsposalEvent(uint8(Status.CANCELLED), pid);
+        p.markSettled();
 
         return true;
     }
 
     function forceCloseOnPrice(string pid) public payable returns(bool) {
 
-        Proposal storage p = proposals[pid];
-        require(p.exists);
-        require(p.status == uint8(Status.ACCEPTED) ||
-                p.status == uint8(Status.FORCE_CLOSING));
-        require(p.banker == msg.sender);
+        ProposalsLib.Proposal storage p = proposals[pid];
+        require(p.canForceClose());
 
         if (oraclize_getPrice("URL") > this.balance) {
             LogError(uint8(Errors.INSUFFICIENT_BALANCE_OR_ALLOWANCE),
                     "Oraclize query was NOT sent, please add some ETH to cover for the query fee");
         } else {
 
-            p.status = uint8(Status.FORCE_CLOSING);
-            LogProsposalEvent(uint8(Status.FORCE_CLOSING), pid);
+            p.markForceClosing();
 
             //json(http://demo5882368.mockable.io/latest_price).rates.ERCX
-            bytes32 queryId = oraclize_query("URL", p.priceURL);
+            bytes32 queryId = oraclize_query("URL", p.triggerInfo.priceURL);
             priceQueries[queryId] = pid;
         }
     }
@@ -169,74 +129,52 @@ contract Badla is usingOraclize {
         if (msg.sender != oraclize_cbAddress()) revert();
 
         uint currentPrice = stringToUint(result);
-        string memory pid = priceQueries[queryId];
+        string memory proposalId = priceQueries[queryId];
 
-        Proposal storage p = proposals[pid];
+        ProposalsLib.Proposal storage p = proposals[proposalId];
 
         require(p.exists);
 
-        if (currentPrice > p.triggerPrice) {
-            _forceCloseOnPrice(pid);
+        if (currentPrice > p.triggerInfo.triggerPrice) {
+            _forceCloseOnPrice(proposalId);
         } else {
 
             LogError(uint8(Errors.TRIGGER_PRICE),
                     "current price is below trigger price");
-            p.status = uint8(Status.ACCEPTED);
+            p.resetAccepted();
         }
     }
 
     function forceCloseOnExpiry(string pid) public returns(bool) {
 
-        Proposal storage p = proposals[pid];
-        require(p.exists);
-        require(p.status == 1);
-        require(block.timestamp > (p.startTime + p.term));
-        require(p.banker == msg.sender);
+        ProposalsLib.Proposal storage p = proposals[pid];
+        require(p.canForceClose());
+        require(p.isExpired());
 
-        wallet[p.banker][p.tokenAddress] += (p.nearLegPrice * p.vol);
+        wallet.sendTo(p.users.banker, p.tokens.tokenAddress, (p.terms.nearLegPrice * p.terms.vol));
 
-        p.status = uint8(Status.FORCE_CLOSED_EXPIRY);
-
-        LogProsposalEvent(uint8(Status.FORCE_CLOSED_EXPIRY), pid);
+        p.markForceClosedOnExpiry();
 
         return true;
     }
 
     function cancelProposal(string pid) public returns (bool) {
 
-        Proposal storage p = proposals[pid];
-        require(p.exists);
-        require(p.status == 0);
-        require(p.banker == msg.sender);
+        ProposalsLib.Proposal storage p = proposals[pid];
+        require(p.canCancel());
 
-        wallet[p.banker][p.cashTokenAddress] += p.vol;
-
-        p.status = uint8(Status.CANCELLED);
-
-        LogProsposalEvent(uint8(Status.CANCELLED), pid);
+        wallet.sendTo(p.users.banker, p.tokens.cashTokenAddress, p.terms.vol);
+        p.markCancelled();
 
         return true;
     }
 
     function withdraw(address tokenAddress) public returns (bool) {
+        return wallet.withdraw(tokenAddress);
+    }
 
-        uint amount = wallet[msg.sender][tokenAddress];
-
-        if (amount > 0) {
-
-            wallet[msg.sender][tokenAddress] = 0;
-
-            if (!ERC20Interface(tokenAddress).transferFrom(this, msg.sender, amount)) {
-                wallet[msg.sender][tokenAddress] = amount;
-                LogError(uint8(Errors.WALLET_ERROR), "Unable to withdraw from wallet");
-                return false;
-            }
-
-        }
-
-        LogWithdrawEvent(msg.sender, tokenAddress, amount);
-
-        return true;
+    function balanceOf(address tokenAddress) public view returns (uint) {
+        return wallet.balanceOf(msg.sender, tokenAddress);
     }
 
     function stringToUint(string s) internal pure returns (uint result) {
@@ -252,24 +190,13 @@ contract Badla is usingOraclize {
         }
     }
 
-    function doesProsposalExist(string pid) internal view returns (bool exists) {
-        Proposal memory p = proposals[pid];
-        return p.exists;
-    }
-
     function _forceCloseOnPrice(string pid) private returns(bool) {
 
-        Proposal storage p = proposals[pid];
-        require(p.exists);
-        require(p.status == uint8(Status.ACCEPTED) ||
-                p.status == uint8(Status.FORCE_CLOSING));
-        require(p.banker == msg.sender);
+        ProposalsLib.Proposal storage p = proposals[pid];
+        require(p.canForceClose());
 
-        wallet[p.banker][p.tokenAddress] += (p.nearLegPrice * p.vol);
-
-        p.status = uint8(Status.FORCE_CLOSED_PRICE);
-
-        LogProsposalEvent(uint8(Status.FORCE_CLOSED_PRICE), pid);
+        wallet.sendTo(p.users.banker, p.tokens.tokenAddress, (p.terms.nearLegPrice * p.terms.vol));
+        p.markForceClosedOnPrice();
 
         return true;
     }
