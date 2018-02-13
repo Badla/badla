@@ -43,10 +43,10 @@ class Badla {
         });
     }
 
-    _createProposal(proposalId, quantity, price, term, returnPrice, triggerPrice, priceUrl) {
+    _createProposal(proposalId, quantity, price, term, returnPrice, triggerPrice, priceUrl, reverseRepo) {
         return new Promise((succ, err) => {
             let account = this.blockChain.currentAccount();
-            this.Badla.createProposal(proposalId, ABI.WETHTokenAddress, quantity, ABI.ERCXTokenAddress, price, term, returnPrice, triggerPrice, priceUrl, {from:account}, (e, res) => {
+            this.Badla.createProposal(proposalId, ABI.WETHTokenAddress, quantity, ABI.ERCXTokenAddress, price, term, returnPrice, triggerPrice, priceUrl, reverseRepo, {from:account}, (e, res) => {
                 if (e) {
                     err("Could not create proposal")
                 } else {
@@ -68,16 +68,16 @@ class Badla {
         });
     }
 
-    createProposal(quantity, price, term, returnPrice, triggerPrice, priceUrl, statusCallback) {
+    createProposal(quantity, price, term, returnPrice, triggerPrice, priceUrl, reverseRepo, statusCallback) {
         return new Promise((succ, err) => {
-            var proposalId = hash(UUID());
+            var proposalId = UUID();
             statusCallback(0, "Waiting for token approval");
             this.approve(quantity).then((transactionId) => {
                 statusCallback(20, "Got token approval. Verifying...");
                 return this.blockChain.waitUntilMined(transactionId);
             }).then(() => {
                 statusCallback(30, "Creating proposal");
-                return this._createProposal(proposalId, quantity, price, term, returnPrice, triggerPrice, priceUrl);
+                return this._createProposal(proposalId, quantity, price, term, returnPrice, triggerPrice, priceUrl, reverseRepo);
             }).then((transactionId) => {
                 statusCallback(70, "Proposal created. Verifying...");
                 return this.blockChain.waitUntilMined(transactionId);
@@ -93,7 +93,7 @@ class Badla {
 
     fetchProposal(proposalId) {
         return new Promise((succ, err) => {
-            this.Badla.proposals(proposalId, (e, res) => {
+            this.Badla.getProposal(proposalId, (e, res) => {
                 if (e) {
                     err("Error in fetching proposal")
                 } else if (!res[0]) {
@@ -106,14 +106,12 @@ class Badla {
     }
 
     parseProposal(proposalId, rawArray) {
-        var badlaProperties = ABI.BadlaABI.filter(publicProperty => publicProperty["name"] === "proposals")[0]["outputs"];
-        badlaProperties = badlaProperties.map(badlaProperty => badlaProperty["name"]);
+        var badlaProperties = ["cashTokenAddress","vol","tokenAddress","nearLegPrice","term","farLegPrice","triggerPrice","priceURL","isReverseRepo","status","startTime"];
         var prettyProposal = {id:proposalId};
         rawArray.forEach((value, index) => {
             var key = badlaProperties[index];
             prettyProposal[key] = value;
         })
-        delete prettyProposal["exists"];
         prettyProposal["statusFriendly"] = this.Status[prettyProposal["status"]];
         return prettyProposal;
     }

@@ -43,7 +43,7 @@ class CreateProposalForm extends React.Component {
         let triggerPrice = this.state.forceSettlement ? this.state.triggerPrice : returnPrice;
         let priceUrl = this.state.forceSettlement ? this.state.priceUrl : "";
 
-        this.badla.createProposal(quantity, price, term, returnPrice, triggerPrice, priceUrl, (percent, msg) => {
+        this.badla.createProposal(quantity, price, term, returnPrice, triggerPrice, priceUrl, false, (percent, msg) => {
             this.setProposalCreatingState({progress:percent, msg:msg})
         }).then((proposal) => {
             this.setProposalCreatingState({done:true, progress:100, userData:JSON.stringify(proposal, null, 4), msg:`Proposal created with id - "${proposal["id"]}"`});
