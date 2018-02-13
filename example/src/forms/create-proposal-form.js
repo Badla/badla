@@ -40,7 +40,7 @@ class CreateProposalForm extends React.Component {
 
     createProposal() {
         let valid = this.isValid()
-        this.setState({'valid':valid})
+        this.setState({'valid':valid, "proposal":false})
         if (!valid) {
             return;
         }
@@ -58,6 +58,7 @@ class CreateProposalForm extends React.Component {
             this.setProposalCreatingState({progress:percent, msg:msg})
         }).then((proposal) => {
             this.setProposalCreatingState({done:true, progress:100, userData:JSON.stringify(proposal, null, 4), msg:`Proposal created with id - "${proposal["id"]}"`});
+            this.setState({proposal:proposal});
         }).catch((msg) => {
             this.setProposalCreatingState({done:true, progress:100, msg:msg, msgClass:"createError"})
         })
@@ -102,7 +103,7 @@ class CreateProposalForm extends React.Component {
     }
 
     dismissAlert() {
-        this.setState({'valid':true})
+        this.setState({'valid':true, "proposal":false})
     }
 
     termChange(value) {
@@ -116,6 +117,8 @@ class CreateProposalForm extends React.Component {
                 <br></br>
                 { !this.state.valid &&
                     <Message msg="Please check your inputs. All fields are mandatory!" error="true" closeable="true" dismissAlert={this.dismissAlert.bind(this)} />}
+                { this.state.proposal &&
+                    <Message msg={`Proposal created with id - ${this.state.proposal.id}`} error="false" closeable="true" dismissAlert={this.dismissAlert.bind(this)} />}
                 <div className="clear hidden">
                     <div className="half left"><FormInput alignClass="rightAlign" validator="address" onChange={this.stateChanged.bind(this)} id="lendingToken" value={ABI.WETHTokenAddress} placeholder="Enter Token Address" extraHelp="A ERC20 Token Address like 0xAbd123..." /></div>
                     <div className="half right"><FormInput validator="address" onChange={this.stateChanged.bind(this)} id="desiredToken" value={ABI.ERCXTokenAddress} placeholder="Enter Token Name" extraHelp="A ERC20 Token Address like 0xAbd123..." /></div>

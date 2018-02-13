@@ -3,6 +3,7 @@ import { Button, ButtonToolbar } from 'react-bootstrap';
 import FormInput from '../components/form-input'
 import Message from '../components/message'
 import BadlaJS from '../eth/badla'
+import ProgressDialog from '../components/progress-dialog'
 
 class FetchProposalForm extends React.Component {
 
@@ -108,6 +109,9 @@ class ProposalActions extends React.Component {
     constructor(props) {
         super(props);
         this.badla = new BadlaJS();
+        this.state = {
+            performingAction:false
+        }
     }
 
     getProposalState(props) {
@@ -129,10 +133,29 @@ class ProposalActions extends React.Component {
         })
     }
 
+    setPerformingActionState(props) {
+        props["title"] = props["title"] || "Accept Proposal"
+        props["msgClass"] = props["msgClass"] || "createSuccess";
+        var performingAction = this.state.performingAction || {};
+        for (var key in props) {
+            performingAction[key] = props[key];
+        }
+        this.setState({"performingAction":performingAction});
+    }
+
+    performingActionComplete() {
+        let newState = Object.assign({}, this.state)
+        newState.performingAction = null
+        this.setState(newState)
+    }
+
     acceptProposal() {
+        this.setPerformingActionState({progress:10, msg:"Waiting for token approval"});
         this.badla.acceptProposal(this.props.proposal).then(() => {
+            this.setPerformingActionState({done:true, progress:100, msg:`Proposal Accepted`});
             this.props.onChange(1, "Accepted");
         }).catch((err)=> {
+            this.setPerformingActionState({done:true, progress:100, msg:err, msgClass:"createError"})
             this.props.onChange(-1, "Error Occured - " + err);
         })
     }
@@ -164,13 +187,25 @@ class ProposalActions extends React.Component {
     render() {
         var state = this.getProposalState(this.props);
         return (
-            <ButtonToolbar>
-                {state.cancel && <Button bsStyle="danger" onClick={this.cancelProposal.bind(this)}>Cancel</Button>}
-                {state.accept && <Button bsStyle="success" onClick={this.acceptProposal.bind(this)}>Accept</Button>}
-                {state.settle && <Button bsStyle="success" onClick={this.settleProposal.bind(this)}>Settle</Button>}
-                {state.forceSettle && <Button bsStyle="danger" onClick={this.forceSettleProposalOnPrice.bind(this)}>Force Settle (Price)</Button>}
-                {state.forceSettle && <Button bsStyle="danger" onClick={this.forceSettleProposalOnExpiry.bind(this)}>Force Settle (Expiry)</Button>}
-            </ButtonToolbar>
+            <div>
+                {this.state.performingAction &&
+                    <ProgressDialog
+                        title={this.state.performingAction.title}
+                        msg={this.state.performingAction.msg}
+                        msgClass={this.state.performingAction.msgClass}
+                        done={this.state.performingAction.done}
+                        userData={this.state.performingAction.userData}
+                        progress={this.state.performingAction.progress}
+                        onClose={this.performingActionComplete.bind(this)} />
+                }
+                <ButtonToolbar>
+                    {state.cancel && <Button bsStyle="danger" onClick={this.cancelProposal.bind(this)}>Cancel</Button>}
+                    {state.accept && <Button bsStyle="success" onClick={this.acceptProposal.bind(this)}>Accept</Button>}
+                    {state.settle && <Button bsStyle="success" onClick={this.settleProposal.bind(this)}>Settle</Button>}
+                    {state.forceSettle && <Button bsStyle="danger" onClick={this.forceSettleProposalOnPrice.bind(this)}>Force Settle (Price)</Button>}
+                    {state.forceSettle && <Button bsStyle="danger" onClick={this.forceSettleProposalOnExpiry.bind(this)}>Force Settle (Expiry)</Button>}
+                </ButtonToolbar>
+            </div>
         );
     }
 }
