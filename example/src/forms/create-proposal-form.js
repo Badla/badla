@@ -17,6 +17,7 @@ class CreateProposalForm extends React.Component {
             'forceSettlement' : false,
             'term' : 20
         };
+        this.termChange(this.state.term);
     }
 
     setProposalCreatingState(props) {
@@ -181,10 +182,10 @@ class CreateProposalForm extends React.Component {
                                 <ProgressBar striped bsStyle="info" now={this.state.creatingProposal.progress} />
                             }
                         </Modal.Body>
-                        { this.state.creatingProposal.done ?
+                        { this.state.creatingProposal.done &&
                         <Modal.Footer>
                             <Button bsStyle="primary" onClick={this.creatingProposalComplete.bind(this)}>Close</Button>
-                        </Modal.Footer> : "" }
+                        </Modal.Footer>}
                     </Modal.Dialog>
                 }
             </div>

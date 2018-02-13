@@ -95,11 +95,18 @@ class FetchProposalForm extends React.Component {
 }
 
 class ProposalActions extends React.Component {
+
+    badla : BadlaJS
+
     constructor(props) {
         super(props);
+        this.badla = new BadlaJS();
+    }
+
+    getProposalState(props) {
         var proposal = props.proposal;
         var account = props.currentAccount;
-        this.state = {
+        return {
             cancel:(account === proposal["banker"] && proposal["statusFriendly"] === "NEW"),
             accept:(account !== proposal["banker"] && proposal["statusFriendly"] === "NEW"),
             settle:false,
@@ -108,7 +115,11 @@ class ProposalActions extends React.Component {
     }
 
     cancelProposal() {
-
+        this.badla.cancelProposal(this.props.proposal.id).then(() => {
+            alert("Cancelled");
+        }).catch((err)=> {
+            alert(err)
+        })
     }
 
     acceptProposal() {
@@ -124,12 +135,13 @@ class ProposalActions extends React.Component {
     }
 
     render() {
+        var state = this.getProposalState(this.props);
         return (
             <ButtonToolbar>
-                {this.state.cancel && <Button bsStyle="danger" onClick={this.cancelProposal.bind(this)}>Cancel</Button>}
-                {this.state.accept && <Button bsStyle="success" onClick={this.acceptProposal.bind(this)}>Accept</Button>}
-                {this.state.settle && <Button bsStyle="success" onClick={this.settleProposal.bind(this)}>Settle</Button>}
-                {this.state.forceSettle && <Button bsStyle="danger" onClick={this.forceSettleProposal.bind(this)}>Force Settle</Button>}
+                {state.cancel && <Button bsStyle="danger" onClick={this.cancelProposal.bind(this)}>Cancel</Button>}
+                {state.accept && <Button bsStyle="success" onClick={this.acceptProposal.bind(this)}>Accept</Button>}
+                {state.settle && <Button bsStyle="success" onClick={this.settleProposal.bind(this)}>Settle</Button>}
+                {state.forceSettle && <Button bsStyle="danger" onClick={this.forceSettleProposal.bind(this)}>Force Settle</Button>}
             </ButtonToolbar>
         );
     }
