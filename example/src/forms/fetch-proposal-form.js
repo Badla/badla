@@ -126,11 +126,7 @@ class ProposalActions extends React.Component {
     }
 
     cancelProposal() {
-        this.badla.cancelProposal(this.props.proposal.id).then(() => {
-            this.props.onChange(2, "Cancelled");
-        }).catch((err)=> {
-            this.props.onChange(-1, "Error Occured - " + err);
-        })
+        this.action("cancelProposal", 2, "Cancel Proposal", "Proposal Cancelled")
     }
 
     setPerformingActionState(props) {
@@ -149,40 +145,32 @@ class ProposalActions extends React.Component {
         this.setState(newState)
     }
 
-    acceptProposal() {
-        this.badla.acceptProposal(this.props.proposal, (progress, msg)=>{
-            this.setPerformingActionState({progress:progress, msg:msg});
+    action(funcKey, statusCode, title, successMessage) {
+        this.badla[funcKey](this.props.proposal, (progress, msg)=>{
+            this.setPerformingActionState({title:title, progress:progress, msg:msg});
         }).then(() => {
-            this.setPerformingActionState({done:true, progress:100, msg:`Proposal Accepted`});
-            this.props.onChange(1, "Accepted");
+            this.setPerformingActionState({title:title, done:true, progress:100, msg:successMessage});
+            this.props.onChange(statusCode, successMessage);
         }).catch((err)=> {
-            this.setPerformingActionState({done:true, progress:100, msg:err, msgClass:"createError"})
+            this.setPerformingActionState({title:title, done:true, progress:100, msg:err, msgClass:"createError"})
             this.props.onChange(-1, "Error Occured - " + err);
         })
+    }
+
+    acceptProposal() {
+        this.action("acceptProposal", 1, "Accept Proposal", "Proposal Accepted")
     }
 
     settleProposal() {
-        this.badla.settleProposal(this.props.proposal.id).then(() => {
-            this.props.onChange(6, "Settled");
-        }).catch((err)=> {
-            this.props.onChange(-1, "Error Occured - " + err);
-        })
+        this.action("settleProposal", 6, "Settle Proposal", "Proposal Settled")
     }
 
     forceSettleProposalOnPrice() {
-        this.badla.forceCloseOnPrice(this.props.proposal.id).then(() => {
-            this.props.onChange(2, "Cancelled");
-        }).catch((err)=> {
-            this.props.onChange(-1, "Error Occured - " + err);
-        })
+        this.action("forceCloseOnPrice", 5, "Force Settle Proposal (On Price)", "Proposal Force Settled (On Price)")
     }
 
     forceSettleProposalOnExpiry() {
-        this.badla.forceCloseOnExpiry(this.props.proposal.id).then(() => {
-            this.props.onChange(2, "Cancelled");
-        }).catch((err)=> {
-            this.props.onChange(-1, "Error Occured - " + err);
-        })
+        this.action("forceCloseOnExpiry", 4, "Force Settle Proposal (On Expiry)", "Proposal Force Settled (On Expiry)")
     }
 
     render() {

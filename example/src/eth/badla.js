@@ -178,9 +178,11 @@ class Badla {
         });
     }
 
-    cancelProposal(proposalId) {
+    cancelProposal(proposal, statusCallback) {
         return new Promise((succ, err) => {
-            this._cancelProposal(proposalId).then((tid)=>{
+            statusCallback(5, "Cancelling proposal...");
+            this._cancelProposal(proposal.id).then((tid)=>{
+                statusCallback(80, "Cancelled proposal. Verifying...");
                 return this.blockChain.waitUntilMined(tid);
             }).then(() => {
                 succ();
@@ -223,7 +225,7 @@ class Badla {
         });
     }
 
-    settleProposal(proposalId) {
+    _settleProposal(proposalId, statusCallback) {
         return new Promise((succ, err) => {
             let account = this.blockChain.currentAccount();
             this.Badla.settleProposal(proposalId, {from:account}, (e, res) => {
@@ -236,20 +238,48 @@ class Badla {
         });
     }
 
-    forceCloseOnPrice(proposalId) {
+    settleProposal(proposal, statusCallback) {
+        return new Promise((succ, err) => {
+            statusCallback(5, "Settling proposal...");
+            this._settleProposal(proposal.id).then((tx)=>{
+                statusCallback(80, "Settled proposal. Verifying...");
+                return this.blockChain.waitUntilMined(tx);
+            }).then(()=>{
+                succ()
+            }).catch((e) => {
+                err(e)
+            });
+        });
+    }
+
+    _forceCloseOnPrice(proposalId) {
         return new Promise((succ, err) => {
             let account = this.blockChain.currentAccount();
             this.Badla.forceCloseOnPrice(proposalId, {from:account}, (e, res) => {
                 if (e) {
                     err("Force close proposal on price failed")
                 } else {
-                    succ();
+                    succ(res);
                 }
             });
         });
     }
 
-    forceCloseOnExpiry(proposalId) {
+    forceCloseOnPrice(proposal, statusCallback) {
+        return new Promise((succ, err) => {
+            statusCallback(5, "Force closing proposal on price...");
+            this._forceCloseOnPrice(proposal.id).then((tx)=>{
+                statusCallback(80, "Force closed proposal. Verifying...");
+                return this.blockChain.waitUntilMined(tx);
+            }).then(()=>{
+                succ()
+            }).catch((e) => {
+                err(e)
+            });
+        });
+    }
+
+    _forceCloseOnExpiry(proposalId) {
         return new Promise((succ, err) => {
             let account = this.blockChain.currentAccount();
             this.Badla.forceCloseOnExpiry(proposalId, {from:account}, (e, res) => {
@@ -258,6 +288,20 @@ class Badla {
                 } else {
                     succ();
                 }
+            });
+        });
+    }
+
+    forceCloseOnExpiry(proposal, statusCallback) {
+        return new Promise((succ, err) => {
+            statusCallback(5, "Force closing proposal on expiry...");
+            this._forceCloseOnExpiry(proposal.id).then((tx)=>{
+                statusCallback(80, "Force closed proposal. Verifying...");
+                return this.blockChain.waitUntilMined(tx);
+            }).then(()=>{
+                succ()
+            }).catch((e) => {
+                err(e)
             });
         });
     }
