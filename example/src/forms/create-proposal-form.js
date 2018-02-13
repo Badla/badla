@@ -1,5 +1,5 @@
 import React from 'react';
-import { ProgressBar, Modal, FormGroup, ControlLabel, Button, Panel, Checkbox, Radio, Alert, Glyphicon } from 'react-bootstrap';
+import { DropdownButton, HelpBlock, MenuItem, ProgressBar, Modal, FormGroup, ControlLabel, Button, Panel, Checkbox, Radio, Alert, Glyphicon } from 'react-bootstrap';
 import FormInput from '../components/form-input'
 import ABI from '../eth/abi'
 import BadlaJS from '../eth/badla'
@@ -14,7 +14,8 @@ class CreateProposalForm extends React.Component {
         this.state = {
             'validation' : {},
             'valid': true,
-            'forceSettlement' : false
+            'forceSettlement' : false,
+            'term' : 20
         };
     }
 
@@ -94,6 +95,10 @@ class CreateProposalForm extends React.Component {
         this.setState({'valid':true})
     }
 
+    termChange(value) {
+        this.stateChanged("term", value, true);
+    }
+
     render() {
         return (
             <div>
@@ -135,7 +140,18 @@ class CreateProposalForm extends React.Component {
                     <Radio name="radioGroup" inline defaultChecked>Reverse Repo</Radio>{' '}
                 </FormGroup>
                 <FormInput validator="number" onChange={this.stateChanged.bind(this)} id="volume" label="Volume" value="20" placeholder="Enter the volume" extraHelp="Ex: 20" />
-                <FormInput validator="number" onChange={this.stateChanged.bind(this)} id="term" label="Term" value="20" placeholder="Enter the term in days" extraHelp="Ex: 15" />
+                <FormGroup>
+                    <ControlLabel>Term</ControlLabel>
+                    <br />
+                    <DropdownButton bsStyle="default" onSelect={this.termChange.bind(this)} title={this.state.term} id="term">
+                       <MenuItem eventKey="1">1</MenuItem>
+                       <MenuItem eventKey="5">5</MenuItem>
+                       <MenuItem eventKey="10">10</MenuItem>
+                       <MenuItem eventKey="20">20</MenuItem>
+                       <MenuItem eventKey="30">30</MenuItem>
+                    </DropdownButton>
+                    <HelpBlock>In Days</HelpBlock>
+                </FormGroup>
                 <Checkbox onChange={this.toggleForceSettlementInfo.bind(this)}>
                     Trigger Forced Settlement
                 </Checkbox>
