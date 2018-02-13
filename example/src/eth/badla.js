@@ -2,6 +2,7 @@ import ABI from './abi'
 import BlockChain from './blockchain'
 import hash from 'string-hash'
 import UUID from 'node-uuid'
+import observer from 'node-observer'
 
 class Badla {
 
@@ -88,6 +89,7 @@ class Badla {
                 if (e) {
                     err("Could not get token approval")
                 } else {
+                    observer.send(this, "UpdateBalances");
                     succ(res)
                 }
             });
@@ -101,6 +103,7 @@ class Badla {
                 if (e) {
                     err("Could not create proposal")
                 } else {
+                    observer.send(this, "UpdateBalances");
                     succ(res)
                 }
             });
@@ -172,6 +175,7 @@ class Badla {
                 if (e) {
                     err("Cancel proposal failed")
                 } else {
+                    observer.send(this, "UpdateBalances");
                     succ(res);
                 }
             });
@@ -199,6 +203,7 @@ class Badla {
                 if (e) {
                     err("Accept proposal failed")
                 } else {
+                    observer.send(this, "UpdateBalances");
                     succ(res);
                 }
             });
@@ -232,6 +237,7 @@ class Badla {
                 if (e) {
                     err("Settle proposal failed")
                 } else {
+                    observer.send(this, "UpdateBalances");
                     succ();
                 }
             });
@@ -259,6 +265,7 @@ class Badla {
                 if (e) {
                     err("Force close proposal on price failed")
                 } else {
+                    observer.send(this, "UpdateBalances");
                     succ(res);
                 }
             });
@@ -286,6 +293,7 @@ class Badla {
                 if (e) {
                     err("Force close proposal on expiry failed")
                 } else {
+                    observer.send(this, "UpdateBalances");
                     succ();
                 }
             });

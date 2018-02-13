@@ -5,6 +5,7 @@ import FetchProposalForm from './forms/fetch-proposal-form'
 import { BrowserRouter, Link, Route } from 'react-router-dom'
 import { Alert, Nav, ListGroup, ListGroupItem } from 'react-bootstrap'
 import BadlaJS from './eth/badla'
+import observer from 'node-observer'
 
 const NoMetaMask = () => {
     return (
@@ -57,6 +58,9 @@ class AppLoader extends React.Component {
         super(props);
         this.state = {};
         this.initialize()
+        observer.subscribe(this, "UpdateBalances", (who, data) => {
+            this.initialize()
+        });
     }
 
     initialize() {
