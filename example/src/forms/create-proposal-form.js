@@ -1,6 +1,7 @@
 import React from 'react';
-import { DropdownButton, HelpBlock, MenuItem, ProgressBar, Modal, FormGroup, ControlLabel, Button, Panel, Checkbox, Radio, Alert, Glyphicon } from 'react-bootstrap';
+import { DropdownButton, HelpBlock, MenuItem, ProgressBar, Modal, FormGroup, ControlLabel, Button, Panel, Checkbox, Radio } from 'react-bootstrap';
 import FormInput from '../components/form-input'
+import Message from '../components/message'
 import ABI from '../eth/abi'
 import BadlaJS from '../eth/badla'
 
@@ -112,15 +113,8 @@ class CreateProposalForm extends React.Component {
             <div>
                 <h3>Create Proposal</h3>
                 <br></br>
-                { !this.state.valid ?
-                    <Alert bsStyle="danger" onDismiss={this.handleDismiss}>
-                      <p>
-                        Please check your inputs. All fields are mandatory!
-                        <Button bsStyle="link" className="right-align" onClick={this.dismissAlert.bind(this)}>
-                          <Glyphicon glyph="remove" />
-                        </Button>
-                      </p>
-                    </Alert> : null }
+                { !this.state.valid &&
+                    <Message msg="Please check your inputs. All fields are mandatory!" error="true" closeable="true" dismissAlert={this.dismissAlert.bind(this)} />}
                 <div className="clear hidden">
                     <div className="half left"><FormInput alignClass="rightAlign" validator="address" onChange={this.stateChanged.bind(this)} id="lendingToken" value={ABI.WETHTokenAddress} placeholder="Enter Token Address" extraHelp="A ERC20 Token Address like 0xAbd123..." /></div>
                     <div className="half right"><FormInput validator="address" onChange={this.stateChanged.bind(this)} id="desiredToken" value={ABI.ERCXTokenAddress} placeholder="Enter Token Name" extraHelp="A ERC20 Token Address like 0xAbd123..." /></div>

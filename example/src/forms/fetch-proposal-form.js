@@ -1,6 +1,7 @@
 import React from 'react';
-import { Button, ButtonToolbar, Alert, Glyphicon } from 'react-bootstrap';
+import { Button, ButtonToolbar } from 'react-bootstrap';
 import FormInput from '../components/form-input'
+import Message from '../components/message'
 import BadlaJS from '../eth/badla'
 
 class FetchProposalForm extends React.Component {
@@ -23,10 +24,9 @@ class FetchProposalForm extends React.Component {
     fetchProposal() {
         let valid = this.isValid()
         if (!valid) {
-            this.setState({"alert":true,"err":true,"msg":"Please enter proposal ID!"})
+            this.setState({"valid":false})
             return;
         }
-        this.setState({"alert":false})
         var proposalId = this.state.proposalId;
         console.log(`Fetching proposal for id - ${proposalId}`)
         this.badla.fetchProposal(proposalId).then((proposal)=>{
@@ -81,33 +81,20 @@ class FetchProposalForm extends React.Component {
             <div>
                 <h3>Fetch Proposal</h3>
                 <br></br>
-                { this.state.alert ?
-                    <Alert bsStyle={this.state.err ? "danger" : "success"} onDismiss={this.handleDismiss}>
-                      <p>
-                        {this.state.msg}
-                        <Button bsStyle="link" className="right-align" onClick={this.dismissAlert.bind(this)}>
-                          <Glyphicon glyph="remove" />
-                        </Button>
-                      </p>
-                    </Alert> : null }
+                { !this.state.valid &&
+                    <Message msg="Please enter proposal ID!" error="true" closeable="true" dismissAlert={this.dismissAlert.bind(this)} /> }
                 <div className="clear">
                     <FormInput onChange={this.stateChanged.bind(this)} id="proposalId" label="Proposal ID" placeholder="Enter Proposal Id" extraHelp="" />
                 </div>
                 <Button bsStyle="primary" onClick={this.fetchProposal.bind(this)}>Fetch</Button>
                 <br></br><br></br>
-                { this.state.proposal ?
-                    <Alert bsStyle={this.state.proposal.status === 'ok' ? "success" : "danger"} onDismiss={this.handleDismiss}>
-                      <p>
-                        {this.state.proposal.msg}
-                      </p>
-                    </Alert>
-                : null }
-                { this.state.proposal && this.state.proposal.data ?
+                { this.state.proposal &&
+                    <Message msg={this.state.proposal.msg} error={this.state.proposal.status === "ok" ? "false" : "true"} closeable="false" dismissAlert={this.dismissAlert.bind(this)} />}
+                { this.state.proposal && this.state.proposal.data &&
                 <div>
                     <pre>{this.state.proposal.asString}</pre>
                     <ProposalActions currentAccount={this.badla.blockChain.currentAccount()} proposal={this.state.proposal.data} onChange={this.onChange.bind(this)} />
-                </div>
-                : null }
+                </div> }
                 { this.state.events && <pre>this.state.events</pre> }
             </div>
         )
