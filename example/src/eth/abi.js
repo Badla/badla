@@ -630,7 +630,7 @@ export default {
             "type": "event"
         }
     ],
-    "BadlaAddress": "0x7bf7ae2da6013aa8de29627e29e4b9fa807d4469",
-    "ERCXTokenAddress": "0xf491289b5da695d7892b4960dcf48eb7e1acb6b8",
-    "WETHTokenAddress": "0xe53a3bac98c9d304a3bb6ce34ed37923bc25117a"
+    "BadlaAddress": "0x31015a5c633fed8621a41b47b1d6001302b24ee2",
+    "ERCXTokenAddress": "0xfe46dfc7548fef9e93eb12fbd1b9bc9c79562115",
+    "WETHTokenAddress": "0x72ec07b0fd99266bcf2017fdc90e2801a22e35c8"
 }

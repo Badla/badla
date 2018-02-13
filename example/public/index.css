@@ -139,3 +139,13 @@ input[type=radio], input[type=checkbox] {
 .metamaskDownload {
     margin-top: 2rem;
 }
+
+.balances {
+    font-family: monospace;
+    position: fixed;
+    right: 2rem;
+    top: 11rem;
+    width: 20rem;
+    word-break: break-all;
+    word-wrap: break-word;
+}

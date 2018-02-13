@@ -9,11 +9,15 @@ class FetchProposalForm extends React.Component {
 
     constructor(props) {
         super(props);
-        this.badla = new BadlaJS();
         this.state = {
             'validation' : {},
             'valid': true
         };
+        this.badla = new BadlaJS((event)=> {
+            var events = this.state.events;
+            events.push(JSON.stringify(event));
+            this.setState({"events":events});
+        });
     }
 
     fetchProposal() {
@@ -104,6 +108,7 @@ class FetchProposalForm extends React.Component {
                     <ProposalActions currentAccount={this.badla.blockChain.currentAccount()} proposal={this.state.proposal.data} onChange={this.onChange.bind(this)} />
                 </div>
                 : null }
+                { this.state.events && <pre>this.state.events</pre> }
             </div>
         )
     }
@@ -138,15 +143,35 @@ class ProposalActions extends React.Component {
     }
 
     acceptProposal() {
-
+        this.badla.acceptProposal(this.props.proposal).then(() => {
+            this.props.onChange(1, "Accepted");
+        }).catch((err)=> {
+            this.props.onChange(-1, "Error Occured - " + err);
+        })
     }
 
     settleProposal() {
-
+        this.badla.settleProposal(this.props.proposal.id).then(() => {
+            this.props.onChange(6, "Settled");
+        }).catch((err)=> {
+            this.props.onChange(-1, "Error Occured - " + err);
+        })
     }
 
-    forceSettleProposal() {
+    forceSettleProposalOnPrice() {
+        this.badla.forceCloseOnPrice(this.props.proposal.id).then(() => {
+            this.props.onChange(2, "Cancelled");
+        }).catch((err)=> {
+            this.props.onChange(-1, "Error Occured - " + err);
+        })
+    }
 
+    forceSettleProposalOnExpiry() {
+        this.badla.forceCloseOnExpiry(this.props.proposal.id).then(() => {
+            this.props.onChange(2, "Cancelled");
+        }).catch((err)=> {
+            this.props.onChange(-1, "Error Occured - " + err);
+        })
     }
 
     render() {
@@ -156,7 +181,8 @@ class ProposalActions extends React.Component {
                 {state.cancel && <Button bsStyle="danger" onClick={this.cancelProposal.bind(this)}>Cancel</Button>}
                 {state.accept && <Button bsStyle="success" onClick={this.acceptProposal.bind(this)}>Accept</Button>}
                 {state.settle && <Button bsStyle="success" onClick={this.settleProposal.bind(this)}>Settle</Button>}
-                {state.forceSettle && <Button bsStyle="danger" onClick={this.forceSettleProposal.bind(this)}>Force Settle</Button>}
+                {state.forceSettle && <Button bsStyle="danger" onClick={this.forceSettleProposalOnPrice.bind(this)}>Force Settle (Price)</Button>}
+                {state.forceSettle && <Button bsStyle="danger" onClick={this.forceSettleProposalOnExpiry.bind(this)}>Force Settle (Expiry)</Button>}
             </ButtonToolbar>
         );
     }
