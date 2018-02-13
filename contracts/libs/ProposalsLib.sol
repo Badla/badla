@@ -79,7 +79,7 @@ library ProposalsLib {
 
     function canAccept(Proposal self) internal view returns (bool) {
         return self.exists && self.status == uint8(Status.NEW) &&
-        self.users.banker == msg.sender;
+        self.users.banker != msg.sender;
     }
 
     function canSettle(Proposal self) internal view returns (bool) {
