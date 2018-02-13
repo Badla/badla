@@ -134,7 +134,20 @@ class CreateProposalForm extends React.Component {
                     <Radio className="marginRightRadio" name="radioGroup" inline>Repo</Radio>{' '}
                     <Radio name="radioGroup" inline defaultChecked>Reverse Repo</Radio>{' '}
                 </FormGroup>
-                {this.state.creatingProposal ?
+                <FormInput validator="number" onChange={this.stateChanged.bind(this)} id="volume" label="Volume" value="20" placeholder="Enter the volume" extraHelp="Ex: 20" />
+                <FormInput validator="number" onChange={this.stateChanged.bind(this)} id="term" label="Term" value="20" placeholder="Enter the term in days" extraHelp="Ex: 15" />
+                <Checkbox onChange={this.toggleForceSettlementInfo.bind(this)}>
+                    Trigger Forced Settlement
+                </Checkbox>
+                { this.state.forceSettlement && <Panel bsStyle="warning" ref="forceSettlementInfo">
+                    <Panel.Heading>Forced Settlement Details</Panel.Heading>
+                    <Panel.Body>
+                        <FormInput validator="number" onChange={this.stateChanged.bind(this)} id="triggerPrice" label="Trigger Price" value="2000" placeholder="Enter the trigger price" extraHelp="Ex: 2000" />
+                        <FormInput onChange={this.stateChanged.bind(this)} validator="url" id="priceUrl" label="Price URL" placeholder="http://..." extraHelp="" />
+                    </Panel.Body>
+                </Panel> }
+                <Button bsStyle="primary" onClick={this.createProposal.bind(this)}>Create</Button>
+                {this.state.creatingProposal &&
                     <Modal.Dialog>
                         <Modal.Header>
                             <Modal.Title>Creating Proposal...</Modal.Title>
@@ -157,20 +170,7 @@ class CreateProposalForm extends React.Component {
                             <Button bsStyle="primary" onClick={this.creatingProposalComplete.bind(this)}>Close</Button>
                         </Modal.Footer> : "" }
                     </Modal.Dialog>
-                    : null }
-                <FormInput validator="number" onChange={this.stateChanged.bind(this)} id="volume" label="Volume" value="20" placeholder="Enter the volume" extraHelp="Ex: 20" />
-                <FormInput validator="number" onChange={this.stateChanged.bind(this)} id="term" label="Term" value="20" placeholder="Enter the term in days" extraHelp="Ex: 15" />
-                <Checkbox onChange={this.toggleForceSettlementInfo.bind(this)}>
-                    Trigger Forced Settlement
-                </Checkbox>
-                { this.state.forceSettlement ? <Panel bsStyle="warning" ref="forceSettlementInfo">
-                    <Panel.Heading>Forced Settlement Details</Panel.Heading>
-                    <Panel.Body>
-                        <FormInput validator="number" onChange={this.stateChanged.bind(this)} id="triggerPrice" label="Trigger Price" value="2000" placeholder="Enter the trigger price" extraHelp="Ex: 2000" />
-                        <FormInput onChange={this.stateChanged.bind(this)} validator="url" id="priceUrl" label="Price URL" placeholder="http://..." extraHelp="" />
-                    </Panel.Body>
-                </Panel> : null }
-                <Button bsStyle="primary" onClick={this.createProposal.bind(this)}>Create</Button>
+                }
             </div>
         )
     }
