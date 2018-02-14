@@ -70,6 +70,30 @@ class Badla {
         return this.getBadlaWalletBalanceOf(ABI.ERCXTokenAddress, address);
     }
 
+    withdrawERCX() {
+        return new Promise((succ, err) => {
+            this.Badla.withdraw(ABI.ERCXTokenAddress, {from:this.blockChain.currentAccount()}, (e, res) => {
+                if (e) {
+                    err(e)
+                } else {
+                    succ()
+                }
+            });
+        });
+    }
+
+    withdrawWETH() {
+        return new Promise((succ, err) => {
+            this.Badla.withdraw(ABI.WETHTokenAddress, {from:this.blockChain.currentAccount()}, (e, res) => {
+                if (e) {
+                    err(e)
+                } else {
+                    succ()
+                }
+            });
+        });
+    }
+
     getBadlaWalletBalanceOf(tokenAddress, address) {
         return new Promise((succ, err) => {
             this.Badla.balanceOf(tokenAddress, {from:address}, (e, res) => {
