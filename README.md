@@ -39,11 +39,16 @@ Via this [link](http://truffleframework.com/ganache/)
 
 Via this [Extensions Gallery Link](https://chrome.google.com/webstore/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn)
 
+#### Install Oraclize Bridge
+
+Via instructions at https://github.com/oraclize/ethereum-bridge.git
+
 ### Run (Development)
 
 #### Open Ganache via CLI
 
-#### `$ ganache-cli --secure -u 0 -u 1 -u 2`
+#### `$ ganache-cli --secure -u 0 -u 1 -u 2 -u 3 --port 7545 -g 5000 -m "amigo"`
+`-m` (pneumonic) keeps the account ids same everytime if the argument is same.
 
 Starts ganache in a CLI and unlocks few accounts.
 
@@ -52,6 +57,10 @@ Starts ganache in a CLI and unlocks few accounts.
 #### `$ truffle console --network develop`
 
 It opens a `web3` based console via `RPC` endpoint to ganache.
+
+#### Start oraclize bridge
+
+#### `$ node bridge -H localhost:7545 -a 3`
 
 #### Compile Badla contract and sample tokens
 
