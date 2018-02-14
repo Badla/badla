@@ -27,8 +27,8 @@ class App extends React.Component {
             <BrowserRouter>
                 <div className="fullHeight main">
                     <Nav>
-                        <div className="navitem"><Link to="/create">Create Proposal</Link></div>
-                        <div className="navitem"><Link to="/fetch">Find Proposal</Link></div>
+                        <div className="navitem"><Link to="/create"><Glyphicon glyph="plus" />{" "}Create Proposal</Link></div>
+                        <div className="navitem"><Link to="/fetch"><Glyphicon glyph="search" />{" "}Find Proposal</Link></div>
                     </Nav>
                     <div className="page">
                         <Route path="/create" component={CreateProposalForm}/>
@@ -79,7 +79,7 @@ class Wallet extends React.Component {
             <div className="balances">
                 <ListGroup>
                     <ListGroupItem bsStyle="warning">
-                        My MetaMask
+                        <b>My MetaMask</b>
                         {this.props.loading && <img className="walletLoading" alt="loading..." src="wallet-loader.gif" width="18" height="18" />}
                     </ListGroupItem>
                     <ListGroupItem bsStyle="success">Ether: {this.props.data.ether}</ListGroupItem>
@@ -88,7 +88,7 @@ class Wallet extends React.Component {
                 </ListGroup>
                 <ListGroup>
                     <ListGroupItem bsStyle="warning">
-                        My Badla Wallet
+                        <b>My Badla Wallet</b>
                         {this.props.loading && <img className="walletLoading" alt="loading..." src="wallet-loader.gif" width="18" height="18" />}
                     </ListGroupItem>
                     <ListGroupItem bsStyle="info">WETH : {this.props.data.BadlaWETH}
@@ -104,9 +104,10 @@ class Wallet extends React.Component {
                 </ListGroup>
                 <ListGroup>
                     <ListGroupItem bsStyle="warning">
-                        Badla Contract Holdings
+                        <b>Badla Contract Holdings</b>
                         {this.props.loading && <img className="walletLoading" alt="loading..." src="wallet-loader.gif" width="18" height="18" />}
                     </ListGroupItem>
+                    <ListGroupItem bsStyle="success">Ether: {this.props.data.BadlaContractEther}</ListGroupItem>
                     <ListGroupItem bsStyle="info">WETH : {this.props.data.BadlaContractWETH}</ListGroupItem>
                     <ListGroupItem>ERCX : {this.props.data.BadlaContractERCX}</ListGroupItem>
                 </ListGroup>
@@ -145,6 +146,9 @@ class AppLoader extends React.Component {
             return this.badla.getERCXTokenBalanceOf(account);
         }).then((balance)=> {
             data["ERCX"] = balance;
+            return blockChain.balanceOf(ABI.BadlaAddress);
+        }).then((balance)=>{
+            data["BadlaContractEther"] = balance;
             return this.badla.getWETHTokenBalanceOf(ABI.BadlaAddress);
         }).then((balance)=>{
             data["BadlaContractWETH"] = balance;

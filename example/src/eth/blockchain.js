@@ -65,6 +65,22 @@ class BlockChain {
             });
         });
     }
+
+    transferEther(from, to, amount) {
+        return new Promise((fulfill, reject) => {
+            this.web3.eth.sendTransaction({from:from,to:to,value:this.web3.toWei(amount),gas:500000}, (e, res) => {
+                if (e) {
+                    reject("Ether transfer failed")
+                } else {
+                    fulfill(res)
+                }
+            });
+        });
+    }
+
+    toWei(ether) {
+        return this.web3.toWei(ether);
+    }
 }
 
 export default BlockChain

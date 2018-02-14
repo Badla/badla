@@ -291,7 +291,7 @@ class Badla {
     _forceCloseOnPrice(proposalId) {
         return new Promise((succ, err) => {
             let account = this.blockChain.currentAccount();
-            this.Badla.forceCloseOnPrice(proposalId, {from:account}, (e, res) => {
+            this.Badla.forceCloseOnPrice(proposalId, {from:account, value:this.blockChain.toWei(1)}, (e, res) => {
                 if (e) {
                     err("Force close proposal on price failed")
                 } else {
@@ -304,9 +304,9 @@ class Badla {
 
     forceCloseOnPrice(proposal, statusCallback) {
         return new Promise((succ, err) => {
-            statusCallback(5, "Force closing proposal on price...");
+            statusCallback(5, "Getting transaction fees for oracle services");
             this._forceCloseOnPrice(proposal.id).then((tx)=>{
-                statusCallback(80, "Force closed proposal. Verifying...");
+                statusCallback(80, "Proposal force closed. Verifying...");
                 return this.blockChain.waitUntilMined(tx);
             }).then(()=>{
                 succ()
@@ -319,7 +319,7 @@ class Badla {
     _forceCloseOnExpiry(proposalId) {
         return new Promise((succ, err) => {
             let account = this.blockChain.currentAccount();
-            this.Badla.forceCloseOnExpiry(proposalId, {from:account}, (e, res) => {
+            this.Badla.forceCloseOnExpiry(proposalId, {from:account, value:this.blockChain.toWei(1)}, (e, res) => {
                 if (e) {
                     err("Force close proposal on expiry failed")
                 } else {

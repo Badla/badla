@@ -21,12 +21,14 @@ class CreateProposalForm extends React.Component {
             'validation' : {},
             'valid': true,
             'forceSettlement' : false,
-            'term' : 20
+            'term' : 20,
+            'triggerAbove' : true
         };
     }
 
     componentDidMount() {
         this.termChange(20);
+        this.triggerDirectionChange(true);
     }
 
     setProposalCreatingState(props) {
@@ -53,8 +55,9 @@ class CreateProposalForm extends React.Component {
         let volume = this.state.volume;
         let triggerPrice = this.state.forceSettlement ? this.state.triggerPrice : 0;
         let priceUrl = this.state.forceSettlement ? this.state.priceUrl : "";
+        let triggerAbove = this.state.triggerAbove;
 
-        this.badla.createProposal(volume, nearLegPrice, term, farLegPrice, triggerPrice, priceUrl, false, (percent, msg) => {
+        this.badla.createProposal(volume, nearLegPrice, term, farLegPrice, triggerPrice, priceUrl, triggerAbove, (percent, msg) => {
             this.setProposalCreatingState({progress:percent, msg:msg})
         }).then((proposal) => {
             this.setProposalCreatingState({done:true, progress:100, userData:JSON.stringify(proposal, null, 4), msg:`Proposal created with id - "${proposal["id"]}"`});
@@ -108,6 +111,10 @@ class CreateProposalForm extends React.Component {
 
     termChange(value) {
         this.stateChanged("term", value, true);
+    }
+
+    triggerDirectionChange(value) {
+        this.stateChanged("triggerAbove", (value === true || value === "true"), true);
     }
 
     render() {
@@ -164,8 +171,18 @@ class CreateProposalForm extends React.Component {
                 { this.state.forceSettlement && <Panel bsStyle="warning" ref="forceSettlementInfo">
                     <Panel.Heading>Forced Settlement Details</Panel.Heading>
                     <Panel.Body>
-                        <FormInput validator="number" onChange={this.stateChanged.bind(this)} id="triggerPrice" label="Trigger Price" value="2000" placeholder="Enter the trigger price" extraHelp="Ex: 2000" />
-                        <FormInput onChange={this.stateChanged.bind(this)} validator="url" id="priceUrl" label="Price URL" placeholder="http://..." extraHelp="" />
+                        <div>
+                            <FormGroup>
+                                <ControlLabel>Trigger Direction</ControlLabel>
+                                <br />
+                                <DropdownButton onSelect={this.triggerDirectionChange.bind(this)} title={this.state.triggerAbove ? "Above" : "Below"} id="triggerAbove">
+                                   <MenuItem eventKey="true">Above</MenuItem>
+                                   <MenuItem eventKey="false">Below</MenuItem>
+                                </DropdownButton>
+                            </FormGroup>
+                            <FormInput validator="number" onChange={this.stateChanged.bind(this)} id="triggerPrice" label="Trigger Price" value="2000" placeholder="Enter the trigger price" extraHelp="Ex: 2000" />
+                        </div>
+                        <FormInput onChange={this.stateChanged.bind(this)} id="priceUrl" label="Price URL" placeholder="http://..." extraHelp="" />
                     </Panel.Body>
                 </Panel> }
                 <Button bsStyle="primary" onClick={this.createProposal.bind(this)}>Create</Button>

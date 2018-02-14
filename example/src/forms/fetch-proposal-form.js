@@ -80,14 +80,14 @@ class FetchProposalForm extends React.Component {
     render() {
         return (
             <div>
-                <h3>Fetch Proposal</h3>
+                <h3>Find Proposal</h3>
                 <br></br>
                 { !this.state.valid &&
                     <Message msg="Please enter proposal ID!" error="true" closeable="true" dismissAlert={this.dismissAlert.bind(this)} /> }
                 <div className="clear">
                     <FormInput onChange={this.stateChanged.bind(this)} id="proposalId" label="Proposal ID" placeholder="Enter Proposal Id" extraHelp="" />
                 </div>
-                <Button bsStyle="primary" onClick={this.fetchProposal.bind(this)}>Fetch</Button>
+                <Button bsStyle="primary" onClick={this.fetchProposal.bind(this)}>Search</Button>
                 <br></br><br></br>
                 { this.state.proposal &&
                     <Message msg={this.state.proposal.msg} error={this.state.proposal.status === "ok" ? "false" : "true"} closeable="false" dismissAlert={this.dismissAlert.bind(this)} />}
@@ -166,11 +166,11 @@ class ProposalActions extends React.Component {
     }
 
     forceSettleProposalOnPrice() {
-        this.action("forceCloseOnPrice", 5, "Force Settle Proposal (On Price)", "Proposal Force Settled (On Price)")
+        this.action("forceCloseOnPrice", 3, "Force Settle Proposal (On Price)", "Proposal Force Settled (On Price)")
     }
 
     forceSettleProposalOnExpiry() {
-        this.action("forceCloseOnExpiry", 4, "Force Settle Proposal (On Expiry)", "Proposal Force Settled (On Expiry)")
+        this.action("forceCloseOnExpiry", 3, "Force Settle Proposal (On Expiry)", "Proposal Force Settled (On Expiry)")
     }
 
     render() {
