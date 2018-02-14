@@ -254,7 +254,7 @@ class Badla {
         });
     }
 
-    _settleProposal(proposalId, statusCallback) {
+    _settleProposal(proposalId) {
         return new Promise((succ, err) => {
             let account = this.blockChain.currentAccount();
             this.Badla.settleProposal(proposalId, {from:account}, (e, res) => {
@@ -262,7 +262,7 @@ class Badla {
                     err("Settle proposal failed")
                 } else {
                     observer.send(this, "UpdateBalances");
-                    succ();
+                    succ(res);
                 }
             });
         });
@@ -271,8 +271,14 @@ class Badla {
     settleProposal(proposal, statusCallback) {
         return new Promise((succ, err) => {
             statusCallback(5, "Settling proposal...");
-            this._settleProposal(proposal.id).then((tx)=>{
-                statusCallback(80, "Settled proposal. Verifying...");
+            this.approve(this.WETHToken, proposal.vol.toString()).then((transactionId) => {
+                statusCallback(20, "Got token approval. Verifying...");
+                return this.blockChain.waitUntilMined(transactionId);
+            }).then(()=> {
+                statusCallback(40, "Settling proposal...");
+                return this._settleProposal(proposal.id);
+            }).then((tx)=>{
+                statusCallback(80, "Proposal settled. Verifying...");
                 return this.blockChain.waitUntilMined(tx);
             }).then(()=>{
                 succ()

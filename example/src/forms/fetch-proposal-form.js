@@ -120,7 +120,7 @@ class ProposalActions extends React.Component {
         return {
             cancel:(account === proposal["banker"] && proposal["statusFriendly"] === "NEW"),
             accept:(account !== proposal["banker"] && proposal["statusFriendly"] === "NEW"),
-            settle:false,
+            settle:(account === proposal["player"] && proposal["statusFriendly"] === "ACCEPTED"),
             forceSettle:(account === proposal["banker"] && proposal["statusFriendly"] === "ACCEPTED")
         };
     }
