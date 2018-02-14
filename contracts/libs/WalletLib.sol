@@ -24,7 +24,7 @@ library WalletLib {
 
             self.balances[msg.sender][token] = 0;
 
-            if (!ERC20Interface(token).transferFrom(this, msg.sender, amount)) {
+            if (!ERC20Interface(token).transfer(msg.sender, amount)) {
                 self.balances[msg.sender][token] = amount;
                 LogError(msg.sender, token, "Unable to withdraw from wallet");
                 return false;
