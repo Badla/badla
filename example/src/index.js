@@ -34,13 +34,19 @@ class App extends React.Component {
                         <Route path="/fetch" component={FetchProposalForm}/>
                         <div className="balances">
                             <ListGroup>
-                                <ListGroupItem bsStyle="warning">MetaMask</ListGroupItem>
+                                <ListGroupItem bsStyle="warning">
+                                    MetaMask
+                                    {this.props.loading && <img className="walletLoading" alt="loading..." src="wallet-loader.gif" width="18" height="18" />}
+                                </ListGroupItem>
                                 <ListGroupItem bsStyle="success">Ether: {this.props.data.ether}</ListGroupItem>
                                 <ListGroupItem bsStyle="info">WETH : {this.props.data.WETH}</ListGroupItem>
                                 <ListGroupItem>ERCX : {this.props.data.ERCX}</ListGroupItem>
                             </ListGroup>
                             <ListGroup>
-                                <ListGroupItem bsStyle="warning">Badla Wallet</ListGroupItem>
+                                <ListGroupItem bsStyle="warning">
+                                    Badla Wallet
+                                    {this.props.loading && <img className="walletLoading" alt="loading..." src="wallet-loader.gif" width="18" height="18" />}
+                                </ListGroupItem>
                                 <ListGroupItem bsStyle="info">WETH : {this.props.data.BadlaWETH}</ListGroupItem>
                                 <ListGroupItem>ERCX : {this.props.data.BadlaERCX}</ListGroupItem>
                             </ListGroup>
@@ -57,13 +63,14 @@ class AppLoader extends React.Component {
     constructor(props) {
         super(props);
         this.state = {};
-        this.initialize()
+        this.loadWalletData()
         observer.subscribe(this, "UpdateBalances", (who, data) => {
-            this.initialize()
+            this.loadWalletData()
         });
     }
 
-    initialize() {
+    loadWalletData() {
+        this.setState({loading:true});
         var badla = new BadlaJS();
         var blockChain = badla.blockChain;
         var account = blockChain.currentAccount();
@@ -82,16 +89,16 @@ class AppLoader extends React.Component {
             return badla.getBadlaWalletERCXTokenBalanceOf(account);
         }).then((balance)=> {
             data["BadlaERCX"] = balance;
-            this.setState({data:data, initialized:true});
+            this.setState({data:data, initialized:true, loading:false});
         }).catch((err)=> {
             console.err(err);
-            this.setState({initialized:true});
+            this.setState({loading:false, initialized:true});
         });
     }
 
     render() {
         return (
-            <div>{ this.state.initialized ? <App data={this.state.data} /> : <div className="center"><img alt="loading..." src="ajax-loader.gif" /></div>}</div>
+            <div>{ this.state.initialized ? <App loading={this.state.loading} data={this.state.data} /> : <div className="center"><img alt="loading..." src="ajax-loader.gif" /></div>}</div>
         )
     }
 }

@@ -149,3 +149,8 @@ input[type=radio], input[type=checkbox] {
     word-break: break-all;
     word-wrap: break-word;
 }
+
+.walletLoading {
+    margin-left: 1rem;
+    margin-top: -0.4rem;
+}
