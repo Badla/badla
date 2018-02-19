@@ -4,9 +4,11 @@ import Promise from 'promise'
 class BlockChain {
 
     web3 : Web3
+    confirmationBlockCount : Int
 
     constructor() {
         this.web3 = new Web3(window.web3.currentProvider);
+        this.confirmationBlockCount = 0
     }
 
     getTransactionStatus(hash) : Promise {
@@ -16,19 +18,47 @@ class BlockChain {
                     reject(err);
                 } else {
                     var blockNumber = res.blockNumber;
-                    fulfill(blockNumber != null);
+                    fulfill([blockNumber != null, blockNumber]);
                 }
             })
         })
     }
 
-    checkTransactionStatusInLoop(hash, fulfill, reject) {
-        setTimeout(() => {
-            this.getTransactionStatus(hash).then((success) => {
-                if (success) {
-                    fulfill(success);
+    getCurrentBlock() {
+        return new Promise((fulfill, reject)=> {
+            this.web3.eth.getBlockNumber((err, res) => {
+                if (err) {
+                    reject(err);
                 } else {
-                    this.checkTransactionStatusInLoop(hash, fulfill);
+                    fulfill(res);
+                }
+            })
+        })
+    }
+
+    waitForFurtherBlocksToBeMined(fulfill, reject, minedBlock, extraBlockCount) {
+        setTimeout(() => {
+            this.getCurrentBlock().then((currentBlock) => {
+                if (!currentBlock) {
+                    reject();
+                } else if ((currentBlock - minedBlock) >= extraBlockCount){
+                    fulfill()
+                } else {
+                    this.waitForFurtherBlocksToBeMined(fulfill, reject, minedBlock, extraBlockCount)
+                }
+            }).catch((e) => {
+                reject(e);
+            })
+        }, 2000)
+    }
+
+    checkTransactionStatusInLoop(hash, fulfill, reject, blockNumber) {
+        setTimeout(() => {
+            this.getTransactionStatus(hash).then((result) => {
+                if (result[0]) {
+                    this.waitForFurtherBlocksToBeMined(fulfill, reject, result[1], this.confirmationBlockCount);
+                } else {
+                    this.checkTransactionStatusInLoop(hash, fulfill, reject, blockNumber);
                 }
             }).catch((e) => {
                 reject(e);
