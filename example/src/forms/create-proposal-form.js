@@ -149,8 +149,12 @@ class CreateProposalForm extends React.Component {
                     <div className="half right"><FormInput validator="number" onChange={this.stateChanged.bind(this)} id="farLegPrice" label="Far Leg Price" value="1800" placeholder="Enter the far leg price" extraHelp="For 1 lending token after contract term ends. Ex: 1800" /></div>
                 </div>
                 <FormGroup>
-                    <Radio className="marginRightRadio" name="radioGroup" inline>Repo</Radio>{' '}
-                    <Radio name="radioGroup" inline defaultChecked>Reverse Repo</Radio>{' '}
+                    <ControlLabel>Agreement Type</ControlLabel>
+                    <br />
+                    <DropdownButton onSelect={this.triggerDirectionChange.bind(this)} title={this.state.triggerAbove ? "Repo" : "Reverse Repo"} id="triggerAbove">
+                       <MenuItem eventKey="true">Repo</MenuItem>
+                       <MenuItem eventKey="false">Reverse Repo</MenuItem>
+                    </DropdownButton>
                 </FormGroup>
                 <FormInput validator="number" onChange={this.stateChanged.bind(this)} id="volume" label="Volume" value="20" placeholder="Enter the volume" extraHelp="Ex: 20" />
                 <FormGroup>
@@ -172,14 +176,6 @@ class CreateProposalForm extends React.Component {
                     <Panel.Heading>Forced Settlement Details</Panel.Heading>
                     <Panel.Body>
                         <div>
-                            <FormGroup>
-                                <ControlLabel>Trigger Direction</ControlLabel>
-                                <br />
-                                <DropdownButton onSelect={this.triggerDirectionChange.bind(this)} title={this.state.triggerAbove ? "Above" : "Below"} id="triggerAbove">
-                                   <MenuItem eventKey="true">Above</MenuItem>
-                                   <MenuItem eventKey="false">Below</MenuItem>
-                                </DropdownButton>
-                            </FormGroup>
                             <FormInput validator="number" onChange={this.stateChanged.bind(this)} id="triggerPrice" label="Trigger Price" value="2000" placeholder="Enter the trigger price" extraHelp="Ex: 2000" />
                         </div>
                         <FormInput onChange={this.stateChanged.bind(this)} id="priceUrl" label="Price URL" placeholder="http://..." extraHelp="" />

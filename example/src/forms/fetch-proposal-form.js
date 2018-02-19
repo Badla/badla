@@ -158,11 +158,11 @@ class ProposalActions extends React.Component {
     }
 
     acceptProposal() {
-        this.action("acceptProposal", 1, "Accept Proposal", "Proposal Accepted")
+        this.action("acceptProposal", 1, "Accept Proposal", "Proposal Accepted. WETH has been sent to your account and your ERCX will be held on blockchain for duration in the proposal")
     }
 
     settleProposal() {
-        this.action("settleProposal", 6, "Settle Proposal", "Proposal Settled")
+        this.action("settleProposal", 6, "Settle Proposal", "Proposal Settled. Check you Badla wallet for your WETH/ERCX balance which you can withdraw anytime to your metamask wallet")
     }
 
     forceSettleProposalOnPrice() {
