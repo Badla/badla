@@ -15,11 +15,7 @@ class FetchProposalForm extends React.Component {
             'validation' : {},
             'valid': true
         };
-        this.badla = new BadlaJS((event)=> {
-            var events = this.state.events;
-            events.push(JSON.stringify(event));
-            this.setState({"events":events});
-        });
+        this.badla = new BadlaJS();
     }
 
     fetchProposal() {

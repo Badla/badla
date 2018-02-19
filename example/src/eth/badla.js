@@ -21,24 +21,14 @@ class Badla {
         "SETTLED"
     ]
 
-    constructor(eventsCallback) {
-        this.blockChain = new BlockChain();
+    constructor(web3) {
+        web3 = web3 || window.web3
+        this.blockChain = new BlockChain(web3);
         var ERCXTokenContract = this.blockChain.createContractFromABI(ABI.ERCXTokenABI);
         var BadlaContract = this.blockChain.createContractFromABI(ABI.BadlaABI);
         this.Badla = BadlaContract.at(ABI.BadlaAddress);
         this.WETHToken = ERCXTokenContract.at(ABI.WETHTokenAddress);
         this.ERCXToken = ERCXTokenContract.at(ABI.ERCXTokenAddress);
-        if (eventsCallback) {
-            this.Badla.allEvents((error, event) => {
-                if (error) {
-                    console.error(error);
-                    eventsCallback(error);
-                    return;
-                }
-                console.log(event);
-                eventsCallback(event);
-            });
-        }
     }
 
     getWETHTokenBalanceOf(address) {

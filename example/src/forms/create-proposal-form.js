@@ -12,11 +12,7 @@ class CreateProposalForm extends React.Component {
 
     constructor(props) {
         super(props);
-        this.badla = new BadlaJS((event)=> {
-            var events = this.state.events;
-            events.push(JSON.stringify(event));
-            this.setState({"events":events});
-        });
+        this.badla = new BadlaJS();
         this.state = {
             'validation' : {},
             'valid': true,

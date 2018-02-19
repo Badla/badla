@@ -60,14 +60,21 @@ class AppLoader extends React.Component {
 
     constructor(props) {
         super(props);
-        this.badla = new BadlaJS();
-        this.state = {};
+        if (window.web3) {
+            this.badla = new BadlaJS(window.web3);
+        }
+        this.state = {
+            noMetaMask:!window.web3
+        };
         observer.subscribe(this, "UpdateBalances", (who, data) => {
             this.loadWalletData()
         });
     }
 
     componentDidMount() {
+        if (!window.web3) {
+            return;
+        }
         this.loadWalletData();
     }
 
@@ -75,7 +82,7 @@ class AppLoader extends React.Component {
         var blockChain = this.badla.blockChain;
         var account = blockChain.currentAccount();
         let accountAvailable = account ? true : false;
-        this.setState({noMetaMask:!window.web3,loading:accountAvailable,accountAvailable:accountAvailable});
+        this.setState({loading:accountAvailable,accountAvailable:accountAvailable});
         if (accountAvailable) {
             var data = {};
             blockChain.balanceOf(account).then((balance)=>{
