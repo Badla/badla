@@ -1,6 +1,5 @@
 import ABI from './abi'
 import BlockChain from './blockchain'
-import hash from 'string-hash'
 import UUID from 'node-uuid'
 import observer from 'node-observer'
 
