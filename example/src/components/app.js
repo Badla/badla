@@ -75,45 +75,53 @@ class AppLoader extends React.Component {
         if (!window.web3) {
             return;
         }
-        this.loadWalletData();
+        var blockChain = this.badla.blockChain;
+        blockChain.getAccounts().then((accounts)=> {
+            if (accounts.length == 0) {
+                this.setState({accountAvailable:false, loading:false, initialized:true});
+                return
+            }
+            this.setState({accountAvailable:true}, ()=> {
+                this.loadWalletData(accounts);
+            });
+        }).catch((err)=> {
+            console.err(err);
+            this.setState({accountAvailable:false, loading:false, initialized:true});
+        })
     }
 
-    loadWalletData() {
+    loadWalletData(accounts) {
         var blockChain = this.badla.blockChain;
-        var account = blockChain.currentAccount();
-        let accountAvailable = account ? true : false;
-        this.setState({loading:accountAvailable,accountAvailable:accountAvailable});
-        if (accountAvailable) {
-            var data = {};
-            blockChain.balanceOf(account).then((balance)=>{
-                data["ether"] = parseFloat(balance).toFixed(8);
-                return this.badla.getWETHTokenBalanceOf(account);
-            }).then((balance)=>{
-                data["WETH"] = balance;
-                return this.badla.getERCXTokenBalanceOf(account);
-            }).then((balance)=> {
-                data["ERCX"] = balance;
-                return blockChain.balanceOf(ABI.BadlaAddress);
-            }).then((balance)=>{
-                data["BadlaContractEther"] = balance;
-                return this.badla.getWETHTokenBalanceOf(ABI.BadlaAddress);
-            }).then((balance)=>{
-                data["BadlaContractWETH"] = balance;
-                return this.badla.getERCXTokenBalanceOf(ABI.BadlaAddress);
-            }).then((balance)=> {
-                data["BadlaContractERCX"] = balance;
-                return this.badla.getBadlaWalletWETHTokenBalanceOf(account);
-            }).then((balance)=>{
-                data["BadlaWETH"] = balance;
-                return this.badla.getBadlaWalletERCXTokenBalanceOf(account);
-            }).then((balance)=> {
-                data["BadlaERCX"] = balance;
-                this.setState({data:data, initialized:true, loading:false});
-            }).catch((err)=> {
-                console.err(err);
-                this.setState({loading:false, initialized:true});
-            });
-        }
+        var data = {};
+        var account = accounts ? accounts[0] : blockChain.currentAccount()
+        blockChain.balanceOf(account).then((balance)=>{
+            data["ether"] = parseFloat(balance).toFixed(8);
+            return this.badla.getWETHTokenBalanceOf(account);
+        }).then((balance)=>{
+            data["WETH"] = balance;
+            return this.badla.getERCXTokenBalanceOf(account);
+        }).then((balance)=> {
+            data["ERCX"] = balance;
+            return blockChain.balanceOf(ABI.BadlaAddress);
+        }).then((balance)=>{
+            data["BadlaContractEther"] = balance;
+            return this.badla.getWETHTokenBalanceOf(ABI.BadlaAddress);
+        }).then((balance)=>{
+            data["BadlaContractWETH"] = balance;
+            return this.badla.getERCXTokenBalanceOf(ABI.BadlaAddress);
+        }).then((balance)=> {
+            data["BadlaContractERCX"] = balance;
+            return this.badla.getBadlaWalletWETHTokenBalanceOf(account);
+        }).then((balance)=>{
+            data["BadlaWETH"] = balance;
+            return this.badla.getBadlaWalletERCXTokenBalanceOf(account);
+        }).then((balance)=> {
+            data["BadlaERCX"] = balance;
+            this.setState({data:data, initialized:true, loading:false});
+        }).catch((err)=> {
+            console.err(err);
+            this.setState({loading:false, initialized:true});
+        });
     }
 
     render() {
