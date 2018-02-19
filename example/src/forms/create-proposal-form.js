@@ -44,10 +44,9 @@ class CreateProposalForm extends React.Component {
         let valid = this.isValid()
         this.setState({'valid':valid, "proposal":false})
         if (!valid) {
+            this.setState({'errorMsg':'Please check your inputs. All fields are mandatory!'})
             return;
         }
-
-        this.setProposalCreatingState({progress:10, msg:"Waiting for token approval"});
 
         var nearLegPrice = this.state.nearLegPrice;
         var farLegPrice = this.state.farLegPrice;
@@ -56,6 +55,16 @@ class CreateProposalForm extends React.Component {
         let triggerPrice = this.state.forceSettlement ? this.state.triggerPrice : 0;
         let priceUrl = this.state.forceSettlement ? this.state.priceUrl : "";
         let triggerAbove = this.state.triggerAbove;
+
+        if (triggerAbove && nearLegPrice < farLegPrice) {
+            this.setState({'valid':false, "proposal":false, 'errorMsg':'Near leg price should be > Far leg price for reverse repo contract'})
+            return;
+        } else if (!triggerAbove && nearLegPrice > farLegPrice) {
+            this.setState({'valid':false, "proposal":false, 'errorMsg':'Near leg price should be < Far leg price for repo contract'})
+            return;
+        }
+
+        this.setProposalCreatingState({progress:10, msg:"Waiting for token approval"});
 
         this.badla.createProposal(volume, nearLegPrice, term, farLegPrice, triggerPrice, priceUrl, triggerAbove, (percent, msg) => {
             this.setProposalCreatingState({progress:percent, msg:msg})
@@ -123,7 +132,7 @@ class CreateProposalForm extends React.Component {
                 <h3>Create Proposal</h3>
                 <br></br>
                 { !this.state.valid &&
-                    <Message msg="Please check your inputs. All fields are mandatory!" error="true" closeable="true" dismissAlert={this.dismissAlert.bind(this)} />}
+                    <Message msg={this.state.errorMsg} error="true" closeable="true" dismissAlert={this.dismissAlert.bind(this)} />}
                 { this.state.proposal &&
                     <Message msg={`Proposal created with id - ${this.state.proposal.id}`} error="false" closeable="true" dismissAlert={this.dismissAlert.bind(this)} />}
                 <div className="clear hidden">
@@ -151,9 +160,9 @@ class CreateProposalForm extends React.Component {
                 <FormGroup>
                     <ControlLabel>Agreement Type</ControlLabel>
                     <br />
-                    <DropdownButton onSelect={this.triggerDirectionChange.bind(this)} title={this.state.triggerAbove ? "Repo" : "Reverse Repo"} id="triggerAbove">
-                       <MenuItem eventKey="true">Repo</MenuItem>
-                       <MenuItem eventKey="false">Reverse Repo</MenuItem>
+                    <DropdownButton onSelect={this.triggerDirectionChange.bind(this)} title={this.state.triggerAbove ? "Reverse Repo" : "Repo"} id="triggerAbove">
+                       <MenuItem eventKey="false">Repo</MenuItem>
+                       <MenuItem eventKey="true">Reverse Repo</MenuItem>
                     </DropdownButton>
                 </FormGroup>
                 <FormInput validator="number" onChange={this.stateChanged.bind(this)} id="volume" label="Volume" value="20" placeholder="Enter the volume" extraHelp="Ex: 20" />
