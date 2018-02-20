@@ -1,11 +1,11 @@
 import React from 'react'
 import { ListGroup, ListGroupItem, Button, Glyphicon} from 'react-bootstrap'
 import observer from 'node-observer'
-import BadlaJS from '../eth/badla'
+import BadlaWeb from '../eth/badla-web'
 
 class Wallet extends React.Component {
 
-    badla : BadlaJS
+    badlaWeb : BadlaWeb
 
     constructor(props) {
         super(props);
@@ -13,12 +13,12 @@ class Wallet extends React.Component {
             withdrawingERCX:false,
             withdrawingWETH:false
         };
-        this.badla = new BadlaJS();
+        this.badlaWeb = new BadlaWeb();
     }
 
     withdrawERCX() {
         this.setState({withdrawingERCX:true});
-        this.badla.withdrawERCX().then(()=>{
+        this.badlaWeb.withdrawERCX().then(()=>{
             this.setState({withdrawingERCX:false});
             observer.send(this, "UpdateBalances");
         }).catch(()=>{
@@ -28,7 +28,7 @@ class Wallet extends React.Component {
 
     withdrawWETH() {
         this.setState({withdrawingWETH:true});
-        this.badla.withdrawWETH().then(()=>{
+        this.badlaWeb.withdrawWETH().then(()=>{
             this.setState({withdrawingWETH:false});
             observer.send(this, "UpdateBalances");
         }).catch(()=>{

@@ -4,15 +4,15 @@ import FormInput from '../components/form-input'
 import Message from '../components/message'
 import ProgressDialog from '../components/progress-dialog'
 import ABI from '../eth/abi'
-import BadlaJS from '../eth/badla'
+import BadlaWeb from '../eth/badla-web'
 
 class CreateProposalForm extends React.Component {
 
-    badla : BadlaJS
+    badla : BadlaWeb
 
     constructor(props) {
         super(props);
-        this.badla = new BadlaJS();
+        this.badlaWeb = new BadlaWeb();
         this.state = {
             'validation' : {},
             'valid': true,
@@ -62,7 +62,7 @@ class CreateProposalForm extends React.Component {
 
         this.setProposalCreatingState({progress:10, msg:"Waiting for token approval"});
 
-        this.badla.createProposal(volume, nearLegPrice, term, farLegPrice, triggerPrice, priceUrl, triggerAbove, (percent, msg) => {
+        this.badlaWeb.createProposal(volume, nearLegPrice, term, farLegPrice, triggerPrice, priceUrl, triggerAbove, (percent, msg) => {
             this.setProposalCreatingState({progress:percent, msg:msg})
         }).then((proposal) => {
             this.setProposalCreatingState({done:true, progress:100, userData:JSON.stringify(proposal, null, 4), msg:`Proposal created with id - "${proposal["id"]}"`});

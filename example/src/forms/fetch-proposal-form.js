@@ -2,12 +2,12 @@ import React from 'react';
 import { Button, ButtonToolbar } from 'react-bootstrap';
 import FormInput from '../components/form-input'
 import Message from '../components/message'
-import BadlaJS from '../eth/badla'
+import BadlaWeb from '../eth/badla-web'
 import ProgressDialog from '../components/progress-dialog'
 
 class FetchProposalForm extends React.Component {
 
-    badla : BadlaJS
+    badla : BadlaWeb
 
     constructor(props) {
         super(props);
@@ -15,7 +15,7 @@ class FetchProposalForm extends React.Component {
             'validation' : {},
             'valid': true
         };
-        this.badla = new BadlaJS();
+        this.badlaWeb = new BadlaWeb();
     }
 
     fetchProposal() {
@@ -26,7 +26,7 @@ class FetchProposalForm extends React.Component {
         }
         var proposalId = this.state.proposalId;
         console.log(`Fetching proposal for id - ${proposalId}`)
-        this.badla.fetchProposal(proposalId).then((proposal)=>{
+        this.badlaWeb.fetchProposal(proposalId).then((proposal)=>{
             this.setState({proposal:{status:"ok", msg:`Proposal ${proposalId} details below - `, data:proposal, asString:JSON.stringify(proposal, null, 4)}})
         }).catch((err)=> {
             this.setState({proposal:{status:"not-found",msg:err}})
@@ -65,7 +65,7 @@ class FetchProposalForm extends React.Component {
         if (ok) {
             proposal.status = "ok";
             proposal.data.status = status;
-            proposal.data.statusFriendly = this.badla.Status[status];
+            proposal.data.statusFriendly = this.badlaWeb.getStatusDescription(status);
             proposal.asString = JSON.stringify(proposal.data, null, 4);
         }
         proposal.status = ok ? "ok" : "not-ok";
@@ -90,7 +90,7 @@ class FetchProposalForm extends React.Component {
                 { this.state.proposal && this.state.proposal.data &&
                 <div>
                     <pre>{this.state.proposal.asString}</pre>
-                    <ProposalActions currentAccount={this.badla.blockChain.currentAccount()} proposal={this.state.proposal.data} onChange={this.onChange.bind(this)} />
+                    <ProposalActions currentAccount={this.badlaWeb.blockChain.currentAccount()} proposal={this.state.proposal.data} onChange={this.onChange.bind(this)} />
                 </div> }
                 { this.state.events && <pre>this.state.events</pre> }
             </div>
@@ -100,11 +100,11 @@ class FetchProposalForm extends React.Component {
 
 class ProposalActions extends React.Component {
 
-    badla : BadlaJS
+    badla : BadlaWeb
 
     constructor(props) {
         super(props);
-        this.badla = new BadlaJS();
+        this.badlaWeb = new BadlaWeb();
         this.state = {
             performingAction:false
         }
@@ -142,7 +142,7 @@ class ProposalActions extends React.Component {
     }
 
     action(funcKey, statusCode, title, successMessage) {
-        this.badla[funcKey](this.props.proposal, (progress, msg)=>{
+        this.badlaWeb[funcKey](this.props.proposal, (progress, msg)=>{
             this.setPerformingActionState({title:title, progress:progress, msg:msg});
         }).then(() => {
             this.setPerformingActionState({title:title, done:true, progress:100, msg:successMessage});

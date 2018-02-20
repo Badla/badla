@@ -105,6 +105,18 @@ class BlockChain {
         });
     }
 
+    tokenBalanceOf(token, address) {
+        return new Promise((succ, err) => {
+            token.balanceOf(address, (e, res) => {
+                if (e) {
+                    err(e)
+                } else {
+                    succ(res.toString(10))
+                }
+            });
+        });
+    }
+
     createContractFromABI(abi) {
         return this.web3.eth.contract(abi);
     }
