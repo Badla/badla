@@ -1,31 +1,9 @@
+import React from 'react'
 import CreateProposalForm from '../forms/create-proposal-form'
 import FetchProposalForm from '../forms/fetch-proposal-form'
 import { BrowserRouter, Link, Route } from 'react-router-dom'
-import { Alert, Nav, Glyphicon} from 'react-bootstrap'
-import BadlaWeb from '../eth/badla-web'
+import { Nav, Glyphicon} from 'react-bootstrap'
 import Wallet from './wallet'
-import observer from 'node-observer'
-import React from 'react'
-import ABI from '../eth/abi'
-
-const NoMetaMask = () => {
-    return (
-        <Alert bsStyle="danger">
-            <p className="center fullHeight">
-            Badla needs metamask plugin installed in your browser and intialized.
-            Please visit&nbsp;<a target="_blank" rel="noopener noreferrer" href="https://metamask.io">metamask.io</a>
-            <br />
-            <img alt="metamask-logo" className="metamaskDownload" src="download-metamask-dark.png" width="200" />
-            </p>
-        </Alert>
-    )
-}
-
-const MetaMaskNotEnabled = () => {
-    return (
-        <Alert bsStyle="danger" className="center">Please open metamask and unlock wallet or add some accounts</Alert>
-    )
-}
 
 class App extends React.Component {
     render() {
@@ -53,89 +31,4 @@ class App extends React.Component {
     }
 }
 
-class AppLoader extends React.Component {
-
-    badlaWebWeb : BadlaWeb
-
-    constructor(props) {
-        super(props);
-        if (window.web3) {
-            this.badlaWeb = new BadlaWeb(window.web3);
-        }
-        this.state = {
-            noMetaMask:!window.web3,
-            accountAvailable:false,
-            loading:true,
-            initialized:false
-        };
-        observer.subscribe(this, "UpdateBalances", (who, data) => {
-            this.loadWalletData()
-        });
-    }
-
-    componentDidMount() {
-        if (!window.web3) {
-            return;
-        }
-        var blockChain = this.badlaWeb.blockChain;
-        blockChain.getAccounts().then((accounts)=> {
-            if (accounts.length === 0) {
-                this.setState({accountAvailable:false, loading:false, initialized:true});
-                return
-            }
-            this.setState({accountAvailable:true}, ()=> {
-                this.loadWalletData(accounts);
-            });
-        }).catch((err)=> {
-            console.err(err);
-            this.setState({accountAvailable:false, loading:false, initialized:true});
-        })
-    }
-
-    loadWalletData(accounts) {
-        var blockChain = this.badlaWeb.blockChain;
-        var data = {};
-        var account = accounts ? accounts[0] : blockChain.currentAccount()
-        blockChain.balanceOf(account).then((balance)=>{
-            data["ether"] = parseFloat(balance).toFixed(8);
-            return blockChain.tokenBalanceOf(ABI.WETHTokenAddress, account);
-        }).then((balance)=>{
-            data["WETH"] = balance;
-            return blockChain.tokenBalanceOf(ABI.ERCXTokenAddress, account);
-        }).then((balance)=> {
-            data["ERCX"] = balance;
-            return blockChain.balanceOf(ABI.BadlaAddress);
-        }).then((balance)=>{
-            data["BadlaContractEther"] = balance;
-            return blockChain.tokenBalanceOf(ABI.WETHTokenAddress, ABI.BadlaAddress);
-        }).then((balance)=>{
-            data["BadlaContractWETH"] = balance;
-            return blockChain.tokenBalanceOf(ABI.ERCXTokenAddress, ABI.BadlaAddress);
-        }).then((balance)=> {
-            data["BadlaContractERCX"] = balance;
-            return this.badlaWeb.balanceOf(ABI.WETHTokenAddress, account);
-        }).then((balance)=>{
-            data["BadlaWETH"] = balance;
-            return this.badlaWeb.balanceOf(ABI.ERCXTokenAddress, account);
-        }).then((balance)=> {
-            data["BadlaERCX"] = balance;
-            this.setState({data:data, initialized:true, loading:false});
-        }).catch((err)=> {
-            console.err(err);
-            this.setState({loading:false, initialized:true});
-        });
-    }
-
-    render() {
-        return (
-            <div>{
-                this.state.noMetaMask ? <NoMetaMask /> :
-                    !this.state.accountAvailable ? <MetaMaskNotEnabled /> :
-                        this.state.initialized ? <App loading={this.state.loading} data={this.state.data} /> :
-                            <div className="center"><img alt="loading..." src="ajax-loader.gif" /></div>
-            }</div>
-        )
-    }
-}
-
-export default AppLoader
+export default App
