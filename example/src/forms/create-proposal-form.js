@@ -1,5 +1,5 @@
 import React from 'react';
-import { DropdownButton, HelpBlock, MenuItem, FormGroup, ControlLabel, Button, Panel, Checkbox, Radio } from 'react-bootstrap';
+import { DropdownButton, HelpBlock, MenuItem, FormGroup, ControlLabel, Button, Panel, Checkbox } from 'react-bootstrap';
 import FormInput from '../components/form-input'
 import Message from '../components/message'
 import ProgressDialog from '../components/progress-dialog'

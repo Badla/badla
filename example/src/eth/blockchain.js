@@ -4,12 +4,12 @@ import Promise from 'promise'
 class BlockChain {
 
     web3 : Web3
-    confirmationBlockCount : Int
+    minimumConfirmations : Int
     accounts : Array
 
     constructor() {
         this.web3 = new Web3(window.web3.currentProvider);
-        this.confirmationBlockCount = 0
+        this.minimumConfirmations = 0
     }
 
     getTransactionStatus(hash) : Promise {
@@ -37,15 +37,15 @@ class BlockChain {
         })
     }
 
-    waitForFurtherBlocksToBeMined(fulfill, reject, minedBlock, extraBlockCount) {
+    waitForConfirmations(fulfill, reject, minedBlockNumber) {
         setTimeout(() => {
-            this.getCurrentBlock().then((currentBlock) => {
-                if (!currentBlock) {
+            this.getCurrentBlock().then((currentBlockNumber) => {
+                if (!currentBlockNumber) {
                     reject();
-                } else if ((currentBlock - minedBlock) >= extraBlockCount){
+                } else if ((currentBlockNumber - minedBlockNumber) >= this.minimumConfirmations){
                     fulfill()
                 } else {
-                    this.waitForFurtherBlocksToBeMined(fulfill, reject, minedBlock, extraBlockCount)
+                    this.waitForConfirmations(fulfill, reject, minedBlockNumber)
                 }
             }).catch((e) => {
                 reject(e);
@@ -57,7 +57,7 @@ class BlockChain {
         setTimeout(() => {
             this.getTransactionStatus(hash).then((result) => {
                 if (result[0]) {
-                    this.waitForFurtherBlocksToBeMined(fulfill, reject, result[1], this.confirmationBlockCount);
+                    this.waitForConfirmations(fulfill, reject, result[1]);
                 } else {
                     this.checkTransactionStatusInLoop(hash, fulfill, reject, blockNumber);
                 }
@@ -93,10 +93,6 @@ class BlockChain {
         })
     }
 
-    createContractFromABI(abi) {
-        return this.web3.eth.contract(abi);
-    }
-
     balanceOf(address) {
         return new Promise((fulfill, reject) => {
             this.web3.eth.getBalance(address, (e, res) => {
@@ -109,16 +105,8 @@ class BlockChain {
         });
     }
 
-    transferEther(from, to, amount) {
-        return new Promise((fulfill, reject) => {
-            this.web3.eth.sendTransaction({from:from,to:to,value:this.web3.toWei(amount),gas:500000}, (e, res) => {
-                if (e) {
-                    reject("Ether transfer failed")
-                } else {
-                    fulfill(res)
-                }
-            });
-        });
+    createContractFromABI(abi) {
+        return this.web3.eth.contract(abi);
     }
 
     toWei(ether) {

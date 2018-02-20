@@ -1,13 +1,12 @@
 import CreateProposalForm from '../forms/create-proposal-form'
 import FetchProposalForm from '../forms/fetch-proposal-form'
-import { BrowserRouter, Link, Route, DefaultRoute } from 'react-router-dom'
+import { BrowserRouter, Link, Route } from 'react-router-dom'
 import { Alert, Nav, Glyphicon} from 'react-bootstrap'
 import BadlaJS from '../eth/badla'
 import Wallet from './wallet'
 import observer from 'node-observer'
 import React from 'react'
 import ABI from '../eth/abi'
-import ReactDOM from 'react-dom'
 
 const NoMetaMask = () => {
     return (
@@ -80,7 +79,7 @@ class AppLoader extends React.Component {
         }
         var blockChain = this.badla.blockChain;
         blockChain.getAccounts().then((accounts)=> {
-            if (accounts.length == 0) {
+            if (accounts.length === 0) {
                 this.setState({accountAvailable:false, loading:false, initialized:true});
                 return
             }
