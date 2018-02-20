@@ -98,25 +98,25 @@ class AppLoader extends React.Component {
         var account = accounts ? accounts[0] : blockChain.currentAccount()
         blockChain.balanceOf(account).then((balance)=>{
             data["ether"] = parseFloat(balance).toFixed(8);
-            return this.badlaWeb.getWETHTokenBalanceOf(account);
+            return blockChain.tokenBalanceOf(ABI.WETHTokenAddress, account);
         }).then((balance)=>{
             data["WETH"] = balance;
-            return this.badlaWeb.getERCXTokenBalanceOf(account);
+            return blockChain.tokenBalanceOf(ABI.ERCXTokenAddress, account);
         }).then((balance)=> {
             data["ERCX"] = balance;
             return blockChain.balanceOf(ABI.BadlaAddress);
         }).then((balance)=>{
             data["BadlaContractEther"] = balance;
-            return this.badlaWeb.getWETHTokenBalanceOf(ABI.BadlaAddress);
+            return blockChain.tokenBalanceOf(ABI.WETHTokenAddress, ABI.BadlaAddress);
         }).then((balance)=>{
             data["BadlaContractWETH"] = balance;
-            return this.badlaWeb.getERCXTokenBalanceOf(ABI.BadlaAddress);
+            return blockChain.tokenBalanceOf(ABI.ERCXTokenAddress, ABI.BadlaAddress);
         }).then((balance)=> {
             data["BadlaContractERCX"] = balance;
-            return this.badlaWeb.getBadlaWalletWETHTokenBalanceOf(account);
+            return this.badlaWeb.badlaBalanceOf(ABI.WETHTokenAddress, account);
         }).then((balance)=>{
             data["BadlaWETH"] = balance;
-            return this.badlaWeb.getBadlaWalletERCXTokenBalanceOf(account);
+            return this.badlaWeb.badlaBalanceOf(ABI.ERCXTokenAddress, account);
         }).then((balance)=> {
             data["BadlaERCX"] = balance;
             this.setState({data:data, initialized:true, loading:false});

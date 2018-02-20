@@ -1,14 +1,18 @@
 import Web3 from 'web3';
 import Promise from 'promise'
+import ABI from './abi'
+import observer from 'node-observer'
 
 class BlockChain {
 
     web3 : Web3
     minimumConfirmations : Int
     accounts : Array
+    ERCXTokenContract: Object
 
     constructor() {
         this.web3 = new Web3(window.web3.currentProvider);
+        this.ERCXTokenContract = this.createContractFromABI(ABI.ERCXTokenABI);
         this.minimumConfirmations = 0
     }
 
@@ -105,13 +109,29 @@ class BlockChain {
         });
     }
 
-    tokenBalanceOf(token, address) {
+    tokenBalanceOf(tokenAddress, address) {
         return new Promise((succ, err) => {
+            var token = this.ERCXTokenContract.at(tokenAddress)
             token.balanceOf(address, (e, res) => {
                 if (e) {
                     err(e)
                 } else {
                     succ(res.toString(10))
+                }
+            });
+        });
+    }
+
+    tokenApprove(tokenAddress, quantity) {
+        return new Promise((succ, err) => {
+            let account = this.currentAccount();
+            var token = this.ERCXTokenContract.at(tokenAddress)
+            token.approve(ABI.BadlaAddress, quantity, {from:account}, (e, res) => {
+                if (e) {
+                    err("Could not get token approval")
+                } else {
+                    observer.send(this, "UpdateBalances");
+                    succ(res)
                 }
             });
         });

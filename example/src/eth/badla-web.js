@@ -1,4 +1,3 @@
-import ABI from './abi'
 import BlockChain from './blockchain'
 import Badla from './badla'
 import UUID from 'node-uuid'
@@ -6,53 +5,32 @@ import UUID from 'node-uuid'
 class BadlaWeb {
 
     blockChain : BlockChain
-    DWETHToken : ERCXTokenContract
-    ERCXToken : ERCXTokenContract
     badla: Badla
 
     constructor(web3) {
         web3 = web3 || window.web3
         this.badla = new Badla(web3)
         this.blockChain = new BlockChain(web3);
-        var ERCXTokenContract = this.blockChain.createContractFromABI(ABI.ERCXTokenABI);
-        this.WETHToken = ERCXTokenContract.at(ABI.WETHTokenAddress);
-        this.ERCXToken = ERCXTokenContract.at(ABI.ERCXTokenAddress);
     }
 
-    getWETHTokenBalanceOf(address) {
-        return this.blockChain.tokenBalanceOf(this.WETHToken, address);
+    badlaBalanceOf(tokenAddress, address) {
+        return this.badla.balanceOf(tokenAddress, address);
     }
 
-    getERCXTokenBalanceOf(address) {
-        return this.blockChain.tokenBalanceOf(this.ERCXToken, address);
+    withdraw(tokenAddress) {
+        return this.badla.withdraw(tokenAddress)
     }
 
-    getBadlaWalletWETHTokenBalanceOf(address) {
-        return this.badla.balanceOf(ABI.WETHTokenAddress, address);
-    }
-
-    getBadlaWalletERCXTokenBalanceOf(address) {
-        return this.badla.balanceOf(ABI.ERCXTokenAddress, address);
-    }
-
-    withdrawERCX() {
-        return this.badla.withdraw(ABI.ERCXTokenAddress)
-    }
-
-    withdrawWETH() {
-        return this.badla.withdraw(ABI.WETHTokenAddress)
-    }
-
-    createProposal(quantity, price, term, returnPrice, triggerPrice, priceUrl, reverseRepo, statusCallback) {
+    createProposal(tokenAddress1, quantity, tokenAddress2, price, term, returnPrice, triggerPrice, priceUrl, reverseRepo, statusCallback) {
         return new Promise((succ, err) => {
             var proposalId = UUID();
             statusCallback(5, "Waiting for token approval");
-            this.badla.approve(this.WETHToken, quantity).then((transactionId) => {
+            this.blockChain.tokenApprove(tokenAddress1, quantity).then((transactionId) => {
                 statusCallback(30, "Got token approval. Verifying...");
                 return this.blockChain.waitUntilMined(transactionId);
             }).then(() => {
                 statusCallback(60, "Creating proposal");
-                return this.badla.createProposal(proposalId, quantity, price, term, returnPrice, triggerPrice, priceUrl, reverseRepo);
+                return this.badla.createProposal(proposalId, tokenAddress1, quantity, tokenAddress2, price, term, returnPrice, triggerPrice, priceUrl, reverseRepo);
             }).then((transactionId) => {
                 statusCallback(90, "Proposal created. Verifying...");
                 return this.blockChain.waitUntilMined(transactionId);
@@ -83,7 +61,7 @@ class BadlaWeb {
     acceptProposal(proposal, statusCallback) {
         return new Promise((succ, err) => {
             statusCallback(5, "Awaiting token approval...");
-            this.badla.approve(this.ERCXToken, (proposal.nearLegPrice * proposal.vol)).then((transactionId) => {
+            this.blockChain.tokenApprove(proposal.token2Address, (proposal.nearLegPrice * proposal.vol)).then((transactionId) => {
                 statusCallback(30, "Got token approval. Verifying...");
                 return this.blockChain.waitUntilMined(transactionId);
             }).then(()=>{
@@ -103,7 +81,7 @@ class BadlaWeb {
     settleProposal(proposal, statusCallback) {
         return new Promise((succ, err) => {
             statusCallback(5, "Settling proposal...");
-            this.badla.approve(this.WETHToken, proposal.vol.toString()).then((transactionId) => {
+            this.blockChain.tokenApprove(proposal.token1Address, proposal.vol.toString()).then((transactionId) => {
                 statusCallback(20, "Got token approval. Verifying...");
                 return this.blockChain.waitUntilMined(transactionId);
             }).then(()=> {

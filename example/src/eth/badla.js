@@ -94,24 +94,10 @@ class Badla {
         });
     }
 
-    approve(token, quantity) {
+    createProposal(proposalId, token1Address, quantity, token2Address, price, term, returnPrice, triggerPrice, priceUrl, reverseRepo) {
         return new Promise((succ, err) => {
             let account = this.blockChain.currentAccount();
-            token.approve(ABI.BadlaAddress, quantity, {from:account}, (e, res) => {
-                if (e) {
-                    err("Could not get token approval")
-                } else {
-                    observer.send(this, "UpdateBalances");
-                    succ(res)
-                }
-            });
-        });
-    }
-
-    createProposal(proposalId, quantity, price, term, returnPrice, triggerPrice, priceUrl, reverseRepo) {
-        return new Promise((succ, err) => {
-            let account = this.blockChain.currentAccount();
-            this.Badla.createProposal(proposalId, ABI.WETHTokenAddress, quantity, ABI.ERCXTokenAddress, price, term, returnPrice, triggerPrice, priceUrl, reverseRepo, {from:account}, (e, res) => {
+            this.Badla.createProposal(proposalId, token1Address, quantity, token2Address, price, term, returnPrice, triggerPrice, priceUrl, reverseRepo, {from:account}, (e, res) => {
                 if (e) {
                     err("Could not create proposal")
                 } else {

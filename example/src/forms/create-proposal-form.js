@@ -62,7 +62,7 @@ class CreateProposalForm extends React.Component {
 
         this.setProposalCreatingState({progress:10, msg:"Waiting for token approval"});
 
-        this.badlaWeb.createProposal(volume, nearLegPrice, term, farLegPrice, triggerPrice, priceUrl, triggerAbove, (percent, msg) => {
+        this.badlaWeb.createProposal(ABI.WETHTokenAddress, volume, ABI.ERCXTokenAddress, nearLegPrice, term, farLegPrice, triggerPrice, priceUrl, triggerAbove, (percent, msg) => {
             this.setProposalCreatingState({progress:percent, msg:msg})
         }).then((proposal) => {
             this.setProposalCreatingState({done:true, progress:100, userData:JSON.stringify(proposal, null, 4), msg:`Proposal created with id - "${proposal["id"]}"`});

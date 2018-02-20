@@ -2,6 +2,7 @@ import React from 'react'
 import { ListGroup, ListGroupItem, Button, Glyphicon} from 'react-bootstrap'
 import observer from 'node-observer'
 import BadlaWeb from '../eth/badla-web'
+import ABI from '../eth/abi'
 
 class Wallet extends React.Component {
 
@@ -18,7 +19,7 @@ class Wallet extends React.Component {
 
     withdrawERCX() {
         this.setState({withdrawingERCX:true});
-        this.badlaWeb.withdrawERCX().then(()=>{
+        this.badlaWeb.withdraw(ABI.ERCXTokenAddress).then(()=>{
             this.setState({withdrawingERCX:false});
             observer.send(this, "UpdateBalances");
         }).catch(()=>{
@@ -28,7 +29,7 @@ class Wallet extends React.Component {
 
     withdrawWETH() {
         this.setState({withdrawingWETH:true});
-        this.badlaWeb.withdrawWETH().then(()=>{
+        this.badlaWeb.withdraw(ABI.WETHTokenAddress).then(()=>{
             this.setState({withdrawingWETH:false});
             observer.send(this, "UpdateBalances");
         }).catch(()=>{
