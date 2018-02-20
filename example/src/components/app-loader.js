@@ -20,9 +20,6 @@ class AppLoader extends React.Component {
             loading:true,
             initialized:false
         };
-        observer.subscribe(this, "UpdateBalances", (who, data) => {
-            this.loadWalletData()
-        });
     }
 
     componentDidMount() {
@@ -35,54 +32,18 @@ class AppLoader extends React.Component {
                 this.setState({accountAvailable:false, loading:false, initialized:true});
                 return
             }
-            this.setState({accountAvailable:true}, ()=> {
-                this.loadWalletData(accounts);
-            });
+            this.setState({accountAvailable:true, accounts:accounts, initialized:true});
         }).catch((err)=> {
             console.err(err);
             this.setState({accountAvailable:false, loading:false, initialized:true});
         })
     }
 
-    loadWalletData(accounts) {
-        var blockChain = this.badlaWeb.blockChain;
-        var data = {};
-        var account = accounts ? accounts[0] : blockChain.currentAccount()
-        blockChain.balanceOf(account).then((balance)=>{
-            data["ether"] = parseFloat(balance).toFixed(8);
-            return blockChain.tokenBalanceOf(ABI.WETHTokenAddress, account);
-        }).then((balance)=>{
-            data["WETH"] = balance;
-            return blockChain.tokenBalanceOf(ABI.ERCXTokenAddress, account);
-        }).then((balance)=> {
-            data["ERCX"] = balance;
-            return blockChain.balanceOf(ABI.BadlaAddress);
-        }).then((balance)=>{
-            data["BadlaContractEther"] = balance;
-            return blockChain.tokenBalanceOf(ABI.WETHTokenAddress, ABI.BadlaAddress);
-        }).then((balance)=>{
-            data["BadlaContractWETH"] = balance;
-            return blockChain.tokenBalanceOf(ABI.ERCXTokenAddress, ABI.BadlaAddress);
-        }).then((balance)=> {
-            data["BadlaContractERCX"] = balance;
-            return this.badlaWeb.balanceOf(ABI.WETHTokenAddress, account);
-        }).then((balance)=>{
-            data["BadlaWETH"] = balance;
-            return this.badlaWeb.balanceOf(ABI.ERCXTokenAddress, account);
-        }).then((balance)=> {
-            data["BadlaERCX"] = balance;
-            this.setState({data:data, initialized:true, loading:false});
-        }).catch((err)=> {
-            console.err(err);
-            this.setState({loading:false, initialized:true});
-        });
-    }
-
     render() {
         return (
             this.state.noMetaMask ? <NoMetaMask /> :
                 !this.state.accountAvailable ? <MetaMaskNotEnabled /> :
-                    this.state.initialized ? <App loading={this.state.loading} data={this.state.data} /> :
+                    this.state.initialized ? <App accounts={this.state.accounts} /> :
                         <div className="center"><img alt="loading..." src="ajax-loader.gif" /></div>
         )
     }

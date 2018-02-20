@@ -23,7 +23,7 @@ class App extends React.Component {
                                 <h5>Please select from menu</h5>
                             </p>
                         )}/>
-                        <Wallet loading={this.props.loading} data={this.props.data} />
+                        <Wallet accounts={this.props.accounts} />
                     </div>
                 </div>
             </BrowserRouter>
