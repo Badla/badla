@@ -64,7 +64,10 @@ class AppLoader extends React.Component {
             this.badla = new BadlaJS(window.web3);
         }
         this.state = {
-            noMetaMask:!window.web3
+            noMetaMask:!window.web3,
+            accountAvailable:false,
+            loading:true,
+            initialized:false
         };
         observer.subscribe(this, "UpdateBalances", (who, data) => {
             this.loadWalletData()
@@ -128,9 +131,9 @@ class AppLoader extends React.Component {
         return (
             <div>{
                 this.state.noMetaMask ? <NoMetaMask /> :
-                    this.state.initialized ? <App loading={this.state.loading} data={this.state.data} />
-                        : !this.state.accountAvailable ? <MetaMaskNotEnabled />
-                            : <div className="center"><img alt="loading..." src="ajax-loader.gif" /></div>
+                    !this.state.accountAvailable ? <MetaMaskNotEnabled /> :
+                        this.state.initialized ? <App loading={this.state.loading} data={this.state.data} /> :
+                            <div className="center"><img alt="loading..." src="ajax-loader.gif" /></div>
             }</div>
         )
     }
