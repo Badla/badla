@@ -18,7 +18,15 @@ class BadlaWeb {
     }
 
     withdraw(tokenAddress) {
-        return this.badla.withdraw(tokenAddress)
+        return new Promise((succ, err)=> {
+            this.badla.withdraw(tokenAddress).then((transactionId)=>{
+                return this.blockChain.waitUntilMined(transactionId);
+            }).then(()=>{
+                succ()
+            }).catch((err)=>{
+                err(err)
+            })
+        })
     }
 
     createProposal(tokenAddress1, quantity, tokenAddress2, price, term, returnPrice, triggerPrice, priceUrl, reverseRepo, statusCallback) {

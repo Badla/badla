@@ -126,7 +126,7 @@ class Badla {
                 if (e) {
                     err(e)
                 } else {
-                    succ()
+                    succ(res)
                 }
             });
         });
