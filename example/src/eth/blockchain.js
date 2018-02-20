@@ -122,7 +122,7 @@ class BlockChain {
         });
     }
 
-    tokenApprove(tokenAddress, quantity) {
+    approveToken(tokenAddress, quantity) {
         return new Promise((succ, err) => {
             let account = this.currentAccount();
             var token = this.ERCXTokenContract.at(tokenAddress)

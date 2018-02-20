@@ -13,7 +13,7 @@ class BadlaWeb {
         this.blockChain = new BlockChain(web3);
     }
 
-    badlaBalanceOf(tokenAddress, address) {
+    balanceOf(tokenAddress, address) {
         return this.badla.balanceOf(tokenAddress, address);
     }
 
@@ -25,7 +25,7 @@ class BadlaWeb {
         return new Promise((succ, err) => {
             var proposalId = UUID();
             statusCallback(5, "Waiting for token approval");
-            this.blockChain.tokenApprove(tokenAddress1, quantity).then((transactionId) => {
+            this.blockChain.approveToken(tokenAddress1, quantity).then((transactionId) => {
                 statusCallback(30, "Got token approval. Verifying...");
                 return this.blockChain.waitUntilMined(transactionId);
             }).then(() => {
@@ -61,7 +61,7 @@ class BadlaWeb {
     acceptProposal(proposal, statusCallback) {
         return new Promise((succ, err) => {
             statusCallback(5, "Awaiting token approval...");
-            this.blockChain.tokenApprove(proposal.token2Address, (proposal.nearLegPrice * proposal.vol)).then((transactionId) => {
+            this.blockChain.approveToken(proposal.token2Address, (proposal.nearLegPrice * proposal.vol)).then((transactionId) => {
                 statusCallback(30, "Got token approval. Verifying...");
                 return this.blockChain.waitUntilMined(transactionId);
             }).then(()=>{
@@ -81,7 +81,7 @@ class BadlaWeb {
     settleProposal(proposal, statusCallback) {
         return new Promise((succ, err) => {
             statusCallback(5, "Settling proposal...");
-            this.blockChain.tokenApprove(proposal.token1Address, proposal.vol.toString()).then((transactionId) => {
+            this.blockChain.approveToken(proposal.token1Address, proposal.vol.toString()).then((transactionId) => {
                 statusCallback(20, "Got token approval. Verifying...");
                 return this.blockChain.waitUntilMined(transactionId);
             }).then(()=> {

@@ -113,10 +113,10 @@ class AppLoader extends React.Component {
             return blockChain.tokenBalanceOf(ABI.ERCXTokenAddress, ABI.BadlaAddress);
         }).then((balance)=> {
             data["BadlaContractERCX"] = balance;
-            return this.badlaWeb.badlaBalanceOf(ABI.WETHTokenAddress, account);
+            return this.badlaWeb.balanceOf(ABI.WETHTokenAddress, account);
         }).then((balance)=>{
             data["BadlaWETH"] = balance;
-            return this.badlaWeb.badlaBalanceOf(ABI.ERCXTokenAddress, account);
+            return this.badlaWeb.balanceOf(ABI.ERCXTokenAddress, account);
         }).then((balance)=> {
             data["BadlaERCX"] = balance;
             this.setState({data:data, initialized:true, loading:false});
