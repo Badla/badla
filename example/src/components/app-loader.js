@@ -1,7 +1,5 @@
 import React from 'react'
 import BadlaWeb from '../eth/badla-web'
-import observer from 'node-observer'
-import ABI from '../eth/abi'
 import { MetaMaskNotEnabled, NoMetaMask } from './metamask'
 import App from './app'
 
