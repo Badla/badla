@@ -73,7 +73,8 @@ If everything goes well, the `Badla` and token contract addresses are printed on
 
 ### Run (TestNet)
 
-TBD
+npm install truffle-hdwallet-provider
+Signup here and send your Kovan address for test eth: https://gitter.im/kovan-testnet/faucet
 
 ## References
 
