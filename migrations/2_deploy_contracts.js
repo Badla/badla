@@ -15,7 +15,7 @@ module.exports = function(deployer) {
         ERCXTokenABI:ERCXToken.abi
     }
 
-    var tokenCreatorAddress = web3.eth.accounts[0];
+    //var tokenCreatorAddress = web3.eth.accounts[0];
     var bankerAddress = "0xEBEb62a3840Fbef657F18CeAeFB0aA93a7212736"; //web3.eth.accounts[1]; //Replace this with metamask account address
     var playerAddress = "0x402681D45482c671719823634237F2A4b246828E"; //Replace this with metamask account address
     var initialTokens = 1000;
@@ -106,6 +106,6 @@ export default "+JSON.stringify(contractInfo, null, 4)+"\n";
 
     Promise.all([deployBadla(), deployERCXToken(), deployWETHToken()]).then(function() {
         saveAbiAndAddressForWebapp();
-        setupInitialEtherAndTokens();
+        //setupInitialEtherAndTokens();
     });
 };
