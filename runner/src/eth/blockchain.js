@@ -5,9 +5,9 @@ import observer from 'node-observer'
 
 class BlockChain {
 
-    web3 : Web3
-    minimumConfirmations : Int
-    accounts : Array
+    web3: Web3
+    minimumConfirmations: Int
+    accounts: Array
     ERCXTokenContract: Object
 
     constructor() {
@@ -16,13 +16,13 @@ class BlockChain {
         this.minimumConfirmations = 0
     }
 
-    getTransactionStatus(hash) : Promise {
+    getTransactionStatus(hash): Promise {
         return new Promise((fulfill, reject) => {
             this.web3.eth.getTransaction(hash, (err, res) => {
                 if (err) {
                     reject(err);
                 } else {
-                    var blockNumber = res.blockNumber;
+                    var blockNumber = res != null ? res.blockNumber : null;
                     fulfill([blockNumber != null, blockNumber]);
                 }
             })
@@ -30,7 +30,7 @@ class BlockChain {
     }
 
     getCurrentBlock() {
-        return new Promise((fulfill, reject)=> {
+        return new Promise((fulfill, reject) => {
             this.web3.eth.getBlockNumber((err, res) => {
                 if (err) {
                     reject(err);
@@ -46,7 +46,7 @@ class BlockChain {
             this.getCurrentBlock().then((currentBlockNumber) => {
                 if (!currentBlockNumber) {
                     reject();
-                } else if ((currentBlockNumber - minedBlockNumber) >= this.minimumConfirmations){
+                } else if ((currentBlockNumber - minedBlockNumber) >= this.minimumConfirmations) {
                     fulfill()
                 } else {
                     this.waitForConfirmations(fulfill, reject, minedBlockNumber)
@@ -71,7 +71,7 @@ class BlockChain {
         }, 2000)
     }
 
-    waitUntilMined(hash) : Promise {
+    waitUntilMined(hash): Promise {
         return new Promise((fulfill, reject) => {
             if (!hash) {
                 reject("Invalid transaction hash");
@@ -87,7 +87,7 @@ class BlockChain {
 
     getAccounts() {
         return new Promise((fulfill, reject) => {
-            this.web3.eth.getAccounts((err, res)=> {
+            this.web3.eth.getAccounts((err, res) => {
                 if (err) {
                     reject(err)
                 } else {
@@ -126,7 +126,9 @@ class BlockChain {
         return new Promise((succ, err) => {
             let account = this.currentAccount();
             var token = this.ERCXTokenContract.at(tokenAddress)
-            token.approve(ABI.BadlaAddress, quantity, {from:account}, (e, res) => {
+            token.approve(ABI.BadlaAddress, quantity, {
+                from: account
+            }, (e, res) => {
                 if (e) {
                     err("Could not get token approval")
                 } else {

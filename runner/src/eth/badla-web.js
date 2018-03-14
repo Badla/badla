@@ -4,7 +4,7 @@ import UUID from 'node-uuid'
 
 class BadlaWeb {
 
-    blockChain : BlockChain
+    blockChain: BlockChain
     badla: Badla
 
     constructor(web3) {
@@ -18,13 +18,13 @@ class BadlaWeb {
     }
 
     withdraw(tokenAddress) {
-        return new Promise((succ, err)=> {
-            this.badla.withdraw(tokenAddress).then((transactionId)=>{
+        return new Promise((succ, err) => {
+            this.badla.withdraw(tokenAddress).then((transactionId) => {
                 return this.blockChain.waitUntilMined(transactionId);
-            }).then(()=>{
+            }).then(() => {
                 succ()
-            }).catch((err)=>{
-                err(err)
+            }).catch((error) => {
+                err(error)
             })
         })
     }
@@ -55,12 +55,12 @@ class BadlaWeb {
     cancelProposal(proposal, statusCallback) {
         return new Promise((succ, err) => {
             statusCallback(5, "Cancelling proposal...");
-            this.badla.cancelProposal(proposal.id).then((tid)=>{
+            this.badla.cancelProposal(proposal.id).then((tid) => {
                 statusCallback(80, "Cancelled proposal. Verifying...");
                 return this.blockChain.waitUntilMined(tid);
             }).then(() => {
                 succ();
-            }).catch((e)=>{
+            }).catch((e) => {
                 err(e);
             });
         });
@@ -72,15 +72,15 @@ class BadlaWeb {
             this.blockChain.approveToken(proposal.token2Address, (proposal.nearLegPrice * proposal.vol)).then((transactionId) => {
                 statusCallback(30, "Got token approval. Verifying...");
                 return this.blockChain.waitUntilMined(transactionId);
-            }).then(()=>{
+            }).then(() => {
                 statusCallback(60, "Accepting proposal...");
                 return this.badla.acceptProposal(proposal.id);
-            }).then((tid)=>{
+            }).then((tid) => {
                 statusCallback(90, "Proposal accepted. Verifying...");
                 return this.blockChain.waitUntilMined(tid);
             }).then(() => {
                 succ();
-            }).catch((e)=>{
+            }).catch((e) => {
                 err(e);
             });
         });
@@ -92,13 +92,13 @@ class BadlaWeb {
             this.blockChain.approveToken(proposal.token1Address, proposal.vol.toString()).then((transactionId) => {
                 statusCallback(20, "Got token approval. Verifying...");
                 return this.blockChain.waitUntilMined(transactionId);
-            }).then(()=> {
+            }).then(() => {
                 statusCallback(40, "Settling proposal...");
                 return this.badla.settleProposal(proposal.id);
-            }).then((tx)=>{
+            }).then((tx) => {
                 statusCallback(80, "Proposal settled. Verifying...");
                 return this.blockChain.waitUntilMined(tx);
-            }).then(()=>{
+            }).then(() => {
                 succ()
             }).catch((e) => {
                 err(e)
@@ -109,10 +109,10 @@ class BadlaWeb {
     forceCloseOnPrice(proposal, statusCallback) {
         return new Promise((succ, err) => {
             statusCallback(5, "Getting transaction fees for oracle services");
-            this.badla.forceCloseOnPrice(proposal.id).then((tx)=>{
+            this.badla.forceCloseOnPrice(proposal.id).then((tx) => {
                 statusCallback(80, "Proposal force closed. Verifying...");
                 return this.blockChain.waitUntilMined(tx);
-            }).then(()=>{
+            }).then(() => {
                 succ()
             }).catch((e) => {
                 err(e)
@@ -123,10 +123,10 @@ class BadlaWeb {
     forceCloseOnExpiry(proposal, statusCallback) {
         return new Promise((succ, err) => {
             statusCallback(5, "Force closing proposal on expiry...");
-            this.badla.forceCloseOnExpiry(proposal.id).then((tx)=>{
+            this.badla.forceCloseOnExpiry(proposal.id).then((tx) => {
                 statusCallback(80, "Force closed proposal. Verifying...");
                 return this.blockChain.waitUntilMined(tx);
-            }).then(()=>{
+            }).then(() => {
                 succ()
             }).catch((e) => {
                 err(e)
