@@ -1,0 +1,160 @@
+*:focus {
+    outline: none!important;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+}
+
+body {
+    font: 14px "Century Gothic", Futura, sans-serif;
+}
+
+ol, ul {
+    padding-left: 30px;
+}
+
+#root {
+    width: 80%;
+    min-width: 400px;
+    margin: 0 auto;
+    padding: 1rem;
+    padding-top: 0rem;
+    height: 100%;
+}
+
+.container {
+    height: 100%;
+    width: 70%;
+}
+
+#content {
+    margin: 0 auto;
+    width: 100%;
+}
+
+.main {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.fullHeight {
+    height: 100%;
+}
+
+.nav {
+    margin-top: 1.7rem;
+    width: 170px;
+    height: 550px;
+    border-right: 1px solid grey
+}
+
+.navitem {
+    height: 40px;
+}
+
+.createError {
+    color: red;
+}
+
+.page {
+    padding-left: 8rem;
+    padding-right: 4rem;
+    width: 100%;
+}
+
+.right-align {
+    margin-top: -0.7rem;
+    margin-right: -1.1rem;
+    float: right;
+}
+
+.main {
+    height: 100%;
+}
+
+.footer {
+    clear: both;
+    bottom: 0.1rem;
+    text-align: center;
+    left: 0;
+    right: 0;
+    padding-top: 2rem;
+    font-size: 1.2rem;
+}
+
+.center {
+    margin: 0 auto;
+    text-align: center;
+}
+
+.fullWidth {
+    width: 100%;
+}
+
+.half {
+    width: 50%;
+    float: left;
+}
+
+.half.right {
+    padding-left: 5px;
+}
+
+.half.left {
+    padding-right: 5px;
+}
+
+.rightAlign {
+    text-align: right;
+    width: 100%;
+}
+
+.clear {
+    clear: both;
+}
+
+.hidden {
+    display: none;
+}
+
+.tokenName {
+    font-size: 25px;
+}
+
+input[type=radio], input[type=checkbox] {
+    /* margin-top: 20px; */
+    /* margin-right: 10px; */
+}
+
+.marginRightRadio {
+    /* margin-right: 20px; */
+}
+
+.iconButton {
+    height: 20px;
+    width: 50px;
+    margin-top: -13.5px;
+}
+
+.metamaskDownload {
+    margin-top: 2rem;
+}
+
+.balances {
+    font-family: monospace;
+    position: fixed;
+    right: 2rem;
+    top: 11rem;
+    width: 20rem;
+    word-break: break-all;
+    word-wrap: break-word;
+}
+
+.walletLoading {
+    margin-left: 1rem;
+    margin-top: -0.4rem;
+}
