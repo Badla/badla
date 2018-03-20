@@ -116,7 +116,7 @@ class BlockChain {
                 if (e) {
                     err(e)
                 } else {
-                    succ(res.toString(10))
+                    succ(parseInt(res.toString(10)))
                 }
             });
         });
@@ -125,17 +125,23 @@ class BlockChain {
     approveToken(tokenAddress, quantity) {
         return new Promise((succ, err) => {
             let account = this.currentAccount();
-            var token = this.ERCXTokenContract.at(tokenAddress)
-            token.approve(ABI.BadlaAddress, quantity, {
-                from: account
-            }, (e, res) => {
-                if (e) {
-                    err("Could not get token approval")
-                } else {
-                    observer.send(this, "UpdateBalances");
-                    succ(res)
+            this.tokenBalanceOf(tokenAddress, account).then((tokenBalance) => {
+                if (tokenBalance < quantity) {
+                    err('Insufficient token balance. Need ' + quantity + ' has ' + tokenBalance);
+                    return;
                 }
-            });
+                var token = this.ERCXTokenContract.at(tokenAddress)
+                token.approve(ABI.BadlaAddress, quantity, {
+                    from: account
+                }, (e, res) => {
+                    if (e) {
+                        err("Could not get token approval")
+                    } else {
+                        observer.send(this, "UpdateBalances");
+                        succ(res)
+                    }
+                });
+            })
         });
     }
 

@@ -156,7 +156,7 @@ class Badla {
                 if (e) {
                     err(e)
                 } else {
-                    succ(res.toString(10))
+                    succ(parseInt(res.toString(10)))
                 }
             });
         });
