@@ -1,5 +1,5 @@
-import BlockChain from './blockchain'
-import Badla from './badla'
+import BlockChain from './lib/blockchain'
+import Badla from './lib/badla'
 import UUID from 'node-uuid'
 
 class BadlaWeb {

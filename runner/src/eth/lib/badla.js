@@ -1,11 +1,11 @@
-import ABI from './abi'
+import ABI from '../generated/abi'
 import BlockChain from './blockchain'
 import observer from 'node-observer'
 
 class Badla {
 
-    blockChain : BlockChain
-    Badla : BadlaContract
+    blockChain: BlockChain
+    Badla: BadlaContract
 
     Status = [
         "NEW",
@@ -27,7 +27,9 @@ class Badla {
     cancelProposal(proposalId) {
         return new Promise((succ, err) => {
             let account = this.blockChain.currentAccount();
-            this.Badla.cancelProposal(proposalId, {from:account}, (e, res) => {
+            this.Badla.cancelProposal(proposalId, {
+                from: account
+            }, (e, res) => {
                 if (e) {
                     err("Cancel proposal failed")
                 } else {
@@ -41,7 +43,9 @@ class Badla {
     acceptProposal(proposalId) {
         return new Promise((succ, err) => {
             let account = this.blockChain.currentAccount();
-            this.Badla.acceptProposal(proposalId, {from:account}, (e, res) => {
+            this.Badla.acceptProposal(proposalId, {
+                from: account
+            }, (e, res) => {
                 if (e) {
                     err("Accept proposal failed")
                 } else {
@@ -55,7 +59,9 @@ class Badla {
     settleProposal(proposalId) {
         return new Promise((succ, err) => {
             let account = this.blockChain.currentAccount();
-            this.Badla.settleProposal(proposalId, {from:account}, (e, res) => {
+            this.Badla.settleProposal(proposalId, {
+                from: account
+            }, (e, res) => {
                 if (e) {
                     err("Settle proposal failed")
                 } else {
@@ -69,7 +75,10 @@ class Badla {
     forceCloseOnPrice(proposalId) {
         return new Promise((succ, err) => {
             let account = this.blockChain.currentAccount();
-            this.Badla.forceCloseOnPrice(proposalId, {from:account, value:this.blockChain.toWei(1)}, (e, res) => {
+            this.Badla.forceCloseOnPrice(proposalId, {
+                from: account,
+                value: this.blockChain.toWei(1)
+            }, (e, res) => {
                 if (e) {
                     err("Force close proposal on price failed")
                 } else {
@@ -83,7 +92,10 @@ class Badla {
     forceCloseOnExpiry(proposalId) {
         return new Promise((succ, err) => {
             let account = this.blockChain.currentAccount();
-            this.Badla.forceCloseOnExpiry(proposalId, {from:account, value:this.blockChain.toWei(1)}, (e, res) => {
+            this.Badla.forceCloseOnExpiry(proposalId, {
+                from: account,
+                value: this.blockChain.toWei(1)
+            }, (e, res) => {
                 if (e) {
                     err("Force close proposal on expiry failed")
                 } else {
@@ -97,7 +109,9 @@ class Badla {
     createProposal(proposalId, token1Address, quantity, token2Address, price, term, returnPrice, triggerPrice, priceUrl, reverseRepo) {
         return new Promise((succ, err) => {
             let account = this.blockChain.currentAccount();
-            this.Badla.createProposal(proposalId, token1Address, quantity, token2Address, price, term, returnPrice, triggerPrice, priceUrl, reverseRepo, {from:account}, (e, res) => {
+            this.Badla.createProposal(proposalId, token1Address, quantity, token2Address, price, term, returnPrice, triggerPrice, priceUrl, reverseRepo, {
+                from: account
+            }, (e, res) => {
                 if (e) {
                     err("Could not create proposal")
                 } else {
@@ -122,7 +136,9 @@ class Badla {
 
     withdraw(address) {
         return new Promise((succ, err) => {
-            this.Badla.withdraw(address, {from:this.blockChain.currentAccount()}, (e, res) => {
+            this.Badla.withdraw(address, {
+                from: this.blockChain.currentAccount()
+            }, (e, res) => {
                 if (e) {
                     err(e)
                 } else {
@@ -134,7 +150,9 @@ class Badla {
 
     balanceOf(tokenAddress, address) {
         return new Promise((succ, err) => {
-            this.Badla.balanceOf(tokenAddress, {from:address}, (e, res) => {
+            this.Badla.balanceOf(tokenAddress, {
+                from: address
+            }, (e, res) => {
                 if (e) {
                     err(e)
                 } else {
@@ -145,8 +163,10 @@ class Badla {
     }
 
     parseProposal(proposalId, rawArray) {
-        var badlaProperties = ["banker","player","token1Address","vol","token2Address","nearLegPrice","term","farLegPrice","triggerPrice","priceURL","isReverseRepo","status","startTime"];
-        var prettyProposal = {id:proposalId};
+        var badlaProperties = ["banker", "player", "token1Address", "vol", "token2Address", "nearLegPrice", "term", "farLegPrice", "triggerPrice", "priceURL", "isReverseRepo", "status", "startTime"];
+        var prettyProposal = {
+            id: proposalId
+        };
         rawArray.forEach((value, index) => {
             var key = badlaProperties[index];
             prettyProposal[key] = value;

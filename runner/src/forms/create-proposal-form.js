@@ -3,7 +3,7 @@ import { DropdownButton, HelpBlock, MenuItem, FormGroup, ControlLabel, Button, P
 import FormInput from '../components/form-input'
 import Message from '../components/message'
 import ProgressDialog from '../components/progress-dialog'
-import ABI from '../eth/abi'
+import ABI from '../eth/generated/abi'
 import BadlaWeb from '../eth/badla-web'
 
 class CreateProposalForm extends React.Component {

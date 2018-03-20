@@ -1,6 +1,6 @@
 import Web3 from 'web3';
 import Promise from 'promise'
-import ABI from './abi'
+import ABI from '../generated/abi'
 import observer from 'node-observer'
 
 class BlockChain {

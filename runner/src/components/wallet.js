@@ -2,7 +2,7 @@ import React from 'react'
 import { ListGroup, ListGroupItem, Button, Glyphicon} from 'react-bootstrap'
 import observer from 'node-observer'
 import BadlaWeb from '../eth/badla-web'
-import ABI from '../eth/abi'
+import ABI from '../eth/generated/abi'
 
 class Wallet extends React.Component {
 
