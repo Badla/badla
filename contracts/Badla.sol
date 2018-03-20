@@ -24,6 +24,14 @@ contract Badla is usingOraclize {
     mapping(string => ProposalsLib.Proposal) internal proposals;
     mapping(bytes32 => string) public priceQueries;
 
+    /**
+    @dev Get details of a proposal
+    @param proposalId is the UUID of the proposal.
+    @return Banker Address, Player Address, Token 1 Address, Token 1 Volume, Token 2 Address,
+            Near Leg Price, Term (in seconds), Far Leg Price, Trigger Price, Price URL,
+            TriggerAbove (true for Reverse Repo, false for Repo), Status of Proposal,
+            Proposal Start Time(or accept time)
+    */
     function getProposal(string proposalId) public constant
         returns(address, address, address, uint, address, uint, uint, uint, uint, string, bool, uint, uint) {
 
@@ -36,8 +44,22 @@ contract Badla is usingOraclize {
             p.terms.term, p.terms.farLegPrice, p.triggerInfo.triggerPrice,
             p.triggerInfo.priceURL,
             p.triggerInfo.triggerAbove, p.status, p.startTime);
-    }
+        }
 
+    /**
+    @notice Banker needs to allocate "vol" of Token 1 to Badla contract
+    @dev Create a New Proposal(As a Banker)
+    @param uuid is the UUID of the proposal.
+    @param token1Address Address of Token 1.
+    @param vol Token 1 Volume
+    @param token2Address Address of Token 2
+    @param nearLegPrice Near Leg Price
+    @param term Proposal Term (in seconds)
+    @param farLegPrice Far Leg Price
+    @param triggerPrice Trigger Price to enable for forced close.
+    @param priceURL Source URL for Token 1 -> Token 2 exchange Price
+    @param triggerAbove (true for Reverse Repo, false for Repo)
+    */
     function createProposal(string uuid,
                             address token1Address,
                             uint vol,
@@ -49,7 +71,6 @@ contract Badla is usingOraclize {
                             string priceURL,
                             bool triggerAbove) public returns (bool) {
 
-        require(nearLegPrice > farLegPrice);
         require(!proposals[uuid].exists);
 
         if (!(msg.sender.safeTransfer(this, token1Address, vol))) {
@@ -64,6 +85,11 @@ contract Badla is usingOraclize {
         return true;
     }
 
+    /**
+    @notice Player needs to allocate "Near Leg Price * vol" of Token 2 to Badla contract
+    @dev Accept the prosposal(As a Player)
+    @param uuid is the UUID of the proposal.
+    */
     function acceptProposal(string pid) public returns (bool) {
 
         require(proposals[pid].exists);
@@ -84,6 +110,13 @@ contract Badla is usingOraclize {
         return true;
     }
 
+    /**
+    @notice Player needs to allocate "vol" of Token 1 to Badla contract
+    @dev Settle the prosposal(As a Player)
+    @param uuid is the UUID of the proposal.
+    On settlement, banker gets "vol" token 1 and token 2 commission.
+    Player gets back all her Token 2.
+    */
     function settleProposal(string pid) public returns(bool) {
 
         ProposalsLib.Proposal storage p = proposals[pid];
@@ -106,6 +139,11 @@ contract Badla is usingOraclize {
         return true;
     }
 
+    /**
+    @dev Force close the prosposal(As a Banker) based on trigger price.
+    @param uuid is the UUID of the proposal.
+    Banker has to pay to Oraclize Service
+    */
     function forceCloseOnPrice(string pid) public payable returns(bool) {
 
         ProposalsLib.Proposal storage p = proposals[pid];
@@ -149,6 +187,10 @@ contract Badla is usingOraclize {
         }
     }
 
+    /**
+    @dev Force close the prosposal(As a Banker) based on expiry.
+    @param uuid is the UUID of the proposal.
+    */
     function forceCloseOnExpiry(string pid) public returns(bool) {
 
         ProposalsLib.Proposal storage p = proposals[pid];
@@ -162,6 +204,11 @@ contract Badla is usingOraclize {
         return true;
     }
 
+    /**
+    @dev Cancel the prosposal(As a Banker).
+    @param uuid is the UUID of the proposal.
+    You can only cancel the proposal if it is not accepted by the player
+    */
     function cancelProposal(string pid) public returns (bool) {
 
         ProposalsLib.Proposal storage p = proposals[pid];
@@ -173,10 +220,18 @@ contract Badla is usingOraclize {
         return true;
     }
 
+    /**
+    @dev Withdraw token from Badla wallet.
+    @param address is the Address of Token.
+    */
     function withdraw(address tokenAddress) public returns (bool) {
         return wallet.withdraw(tokenAddress);
     }
 
+    /**
+    @dev Get Users Token Balance in Badla Wallet
+    @param address is the Address of Token.
+    */
     function balanceOf(address tokenAddress) public view returns (uint) {
         return wallet.balanceOf(msg.sender, tokenAddress);
     }
