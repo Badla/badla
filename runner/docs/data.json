@@ -1,0 +1,324 @@
+{
+    "project": {},
+    "files": {
+        "src/eth/badla-web.js": {
+            "name": "src/eth/badla-web.js",
+            "modules": {},
+            "classes": {
+                "BadlaWeb": 1
+            },
+            "fors": {},
+            "namespaces": {}
+        }
+    },
+    "modules": {},
+    "classes": {
+        "BadlaWeb": {
+            "name": "BadlaWeb",
+            "shortname": "BadlaWeb",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "file": "src/eth/badla-web.js",
+            "line": 29,
+            "description": "BadlaWeb contructor",
+            "is_constructor": 1,
+            "params": [
+                {
+                    "name": "web3",
+                    "description": "- Web3 object that points to a etherum node connection usually\nfrom a lightnode like MetaMask",
+                    "type": "Web3"
+                }
+            ]
+        }
+    },
+    "elements": {},
+    "classitems": [
+        {
+            "file": "src/eth/badla-web.js",
+            "line": 11,
+            "description": "Reference to blockchain object which can used for querying blockchain state\nand execute non-badla functions like checking ether balance etc",
+            "itemtype": "property",
+            "name": "blockChain",
+            "type": "BlockChain",
+            "class": "BadlaWeb"
+        },
+        {
+            "file": "src/eth/badla-web.js",
+            "line": 20,
+            "description": "Reference to badla wrapper that converts smart contract functions from callback\nbased to promise based",
+            "itemtype": "property",
+            "name": "badla",
+            "type": "Badla",
+            "class": "BadlaWeb"
+        },
+        {
+            "file": "src/eth/badla-web.js",
+            "line": 43,
+            "description": "Find balances in badla wallet. Badla transaction that fetch tokens\ngo into badla wallet and need to be seperately withdrawn to their\nexternal wallet (like MetaMask)",
+            "itemtype": "method",
+            "name": "balanceOf",
+            "params": [
+                {
+                    "name": "tokenAddress",
+                    "description": "- Address of the ERC20 token contract",
+                    "type": "String"
+                },
+                {
+                    "name": "address",
+                    "description": "- Address of the account to find balance of in badla wallet",
+                    "type": "String"
+                }
+            ],
+            "return": {
+                "description": "promise that succeeds with badla wallet balance",
+                "type": "Promise"
+            },
+            "class": "BadlaWeb"
+        },
+        {
+            "file": "src/eth/badla-web.js",
+            "line": 57,
+            "description": "Withdraw balance in badla wallet of the current active account - usually\nfirst account in the accounts array - eth.accounts[0] to the web3 account (Metamask account)",
+            "itemtype": "method",
+            "name": "withdraw",
+            "params": [
+                {
+                    "name": "tokenAddress",
+                    "description": "- Address of the ERC20 token contract",
+                    "type": "String"
+                }
+            ],
+            "return": {
+                "description": "promise",
+                "type": "Promise"
+            },
+            "class": "BadlaWeb"
+        },
+        {
+            "file": "src/eth/badla-web.js",
+            "line": 77,
+            "description": "Create badla proposal",
+            "itemtype": "method",
+            "name": "createProposal",
+            "params": [
+                {
+                    "name": "tokenAddress1",
+                    "description": "- Address of the ERC20 token contract that is being lent",
+                    "type": "String"
+                },
+                {
+                    "name": "quantity",
+                    "description": "- Quantity of token being lent",
+                    "type": "Number"
+                },
+                {
+                    "name": "tokenAddress2",
+                    "description": "- Address of the ERC20 token contract that is being sought",
+                    "type": "String"
+                },
+                {
+                    "name": "price",
+                    "description": "- Offer price",
+                    "type": "Number"
+                },
+                {
+                    "name": "term",
+                    "description": "- Term of the proposal after acceptance in days",
+                    "type": "Number"
+                },
+                {
+                    "name": "returnPrice",
+                    "description": "- Expected return price",
+                    "type": "Number"
+                },
+                {
+                    "name": "triggerPrice",
+                    "description": "- Price at which force settlement will trigger",
+                    "type": "Number"
+                },
+                {
+                    "name": "priceUrl",
+                    "description": "- Oraclize url for price check to force settle",
+                    "type": "Url"
+                },
+                {
+                    "name": "reverseRepo",
+                    "description": "- Is it reverse repo",
+                    "type": "Boolean"
+                },
+                {
+                    "name": "statusCallback",
+                    "description": "- Callback that notifies state of the proposal creation after each step",
+                    "type": "String"
+                }
+            ],
+            "return": {
+                "description": "promise that succeeds with proposal details",
+                "type": "Promise"
+            },
+            "class": "BadlaWeb"
+        },
+        {
+            "file": "src/eth/badla-web.js",
+            "line": 116,
+            "description": "Cancel badla proposal",
+            "itemtype": "method",
+            "name": "cancelProposal",
+            "params": [
+                {
+                    "name": "proposal",
+                    "description": "- Proposal to be cancelled",
+                    "type": "Proposal"
+                },
+                {
+                    "name": "statusCallback",
+                    "description": "- Callback that notifies state of the proposal creation after each step",
+                    "type": "String"
+                }
+            ],
+            "return": {
+                "description": "promise",
+                "type": "Promise"
+            },
+            "class": "BadlaWeb"
+        },
+        {
+            "file": "src/eth/badla-web.js",
+            "line": 138,
+            "description": "Accept badla proposal",
+            "itemtype": "method",
+            "name": "acceptProposal",
+            "params": [
+                {
+                    "name": "proposal",
+                    "description": "- Proposal to be accepted",
+                    "type": "Proposal"
+                },
+                {
+                    "name": "statusCallback",
+                    "description": "- Callback that notifies state of the proposal creation after each step",
+                    "type": "String"
+                }
+            ],
+            "return": {
+                "description": "promise",
+                "type": "Promise"
+            },
+            "class": "BadlaWeb"
+        },
+        {
+            "file": "src/eth/badla-web.js",
+            "line": 166,
+            "description": "Settle badla proposal",
+            "itemtype": "method",
+            "name": "settleProposal",
+            "params": [
+                {
+                    "name": "proposal",
+                    "description": "- Proposal to be settled",
+                    "type": "Proposal"
+                },
+                {
+                    "name": "statusCallback",
+                    "description": "- Callback that notifies state of the proposal creation after each step",
+                    "type": "String"
+                }
+            ],
+            "return": {
+                "description": "promise",
+                "type": "Promise"
+            },
+            "class": "BadlaWeb"
+        },
+        {
+            "file": "src/eth/badla-web.js",
+            "line": 194,
+            "description": "Force close badla proposal based on price of the oracalize url",
+            "itemtype": "method",
+            "name": "forceCloseOnPrice",
+            "params": [
+                {
+                    "name": "proposal",
+                    "description": "- Proposal to be force closed",
+                    "type": "Proposal"
+                },
+                {
+                    "name": "statusCallback",
+                    "description": "- Callback that notifies state of the proposal creation after each step",
+                    "type": "String"
+                }
+            ],
+            "return": {
+                "description": "promise",
+                "type": "Promise"
+            },
+            "class": "BadlaWeb"
+        },
+        {
+            "file": "src/eth/badla-web.js",
+            "line": 216,
+            "description": "Force close badla proposal based on term end",
+            "itemtype": "method",
+            "name": "forceCloseOnExpiry",
+            "params": [
+                {
+                    "name": "proposal",
+                    "description": "- Proposal to be force closed",
+                    "type": "Proposal"
+                },
+                {
+                    "name": "statusCallback",
+                    "description": "- Callback that notifies state of the proposal creation after each step",
+                    "type": "String"
+                }
+            ],
+            "return": {
+                "description": "promise",
+                "type": "Promise"
+            },
+            "class": "BadlaWeb"
+        },
+        {
+            "file": "src/eth/badla-web.js",
+            "line": 238,
+            "description": "Fetch proposal details",
+            "itemtype": "method",
+            "name": "fetchProposal",
+            "params": [
+                {
+                    "name": "proposalId",
+                    "description": "- Proposal Id",
+                    "type": "Number"
+                }
+            ],
+            "return": {
+                "description": "proposal",
+                "type": "Proposal"
+            },
+            "class": "BadlaWeb"
+        },
+        {
+            "file": "src/eth/badla-web.js",
+            "line": 249,
+            "description": "Get proposal status deascription",
+            "itemtype": "method",
+            "name": "getStatusDescription",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "- Status id found in proposal",
+                    "type": "Number"
+                }
+            ],
+            "return": {
+                "description": "Description",
+                "type": "String"
+            },
+            "class": "BadlaWeb"
+        }
+    ],
+    "warnings": []
+}
