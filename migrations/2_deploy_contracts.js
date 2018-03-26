@@ -58,7 +58,23 @@ export default " + JSON.stringify(contractInfo, null, 4) + "\n";
                     fail();
                     return;
                 }
-                log("Contract ABI & Address Saved - " + contractInfoFilePath);
+                log("Contract ABI & Address Saved for runner webapp- " + contractInfoFilePath);
+                succ();
+            });
+        });
+    }
+
+    function saveAbiAndAddressForTruffleScripts() {
+        return new Promise(function(succ, fail) {
+            var contractInfoFilePath = "./truffle-scripts/generated/abi.json";
+            var fileData = JSON.stringify(contractInfo, null, 4) + "\n";
+            fs.writeFile(contractInfoFilePath, fileData, function(err) {
+                if (err) {
+                    console.log(err);
+                    fail();
+                    return;
+                }
+                log("Contract ABI & Address Saved for truffle scripts - " + contractInfoFilePath);
                 succ();
             });
         });
@@ -69,7 +85,7 @@ export default " + JSON.stringify(contractInfo, null, 4) + "\n";
     }
 
     Promise.all([deployBadla(), deployERCXToken(), deployWETHToken()]).then(function() {
-        saveAbiAndAddressForWebapp().then(() => {
+        return Promise.all([saveAbiAndAddressForWebapp(), saveAbiAndAddressForTruffleScripts()]).then(() => {
             console.log("DONE");
         });
     });

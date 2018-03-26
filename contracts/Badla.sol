@@ -88,7 +88,7 @@ contract Badla is usingOraclize {
     /**
     @notice Player needs to allocate "Near Leg Price * vol" of Token 2 to Badla contract
     @dev Accept the prosposal(As a Player)
-    @param uuid is the UUID of the proposal.
+    @param pid is the UUID of the proposal.
     */
     function acceptProposal(string pid) public returns (bool) {
 
@@ -113,7 +113,7 @@ contract Badla is usingOraclize {
     /**
     @notice Player needs to allocate "vol" of Token 1 to Badla contract
     @dev Settle the prosposal(As a Player)
-    @param uuid is the UUID of the proposal.
+    @param pid is the UUID of the proposal.
     On settlement, banker gets "vol" token 1 and token 2 commission.
     Player gets back all her Token 2.
     */
@@ -141,7 +141,7 @@ contract Badla is usingOraclize {
 
     /**
     @dev Force close the prosposal(As a Banker) based on trigger price.
-    @param uuid is the UUID of the proposal.
+    @param pid is the UUID of the proposal.
     Banker has to pay to Oraclize Service
     */
     function forceCloseOnPrice(string pid) public payable returns(bool) {
@@ -189,7 +189,7 @@ contract Badla is usingOraclize {
 
     /**
     @dev Force close the prosposal(As a Banker) based on expiry.
-    @param uuid is the UUID of the proposal.
+    @param pid is the UUID of the proposal.
     */
     function forceCloseOnExpiry(string pid) public returns(bool) {
 
@@ -206,7 +206,7 @@ contract Badla is usingOraclize {
 
     /**
     @dev Cancel the prosposal(As a Banker).
-    @param uuid is the UUID of the proposal.
+    @param pid is the UUID of the proposal.
     You can only cancel the proposal if it is not accepted by the player
     */
     function cancelProposal(string pid) public returns (bool) {
@@ -222,7 +222,7 @@ contract Badla is usingOraclize {
 
     /**
     @dev Withdraw token from Badla wallet.
-    @param address is the Address of Token.
+    @param tokenAddress is the Address of Token.
     */
     function withdraw(address tokenAddress) public returns (bool) {
         return wallet.withdraw(tokenAddress);
@@ -230,7 +230,7 @@ contract Badla is usingOraclize {
 
     /**
     @dev Get Users Token Balance in Badla Wallet
-    @param address is the Address of Token.
+    @param tokenAddress is the Address of Token.
     */
     function balanceOf(address tokenAddress) public view returns (uint) {
         return wallet.balanceOf(msg.sender, tokenAddress);
