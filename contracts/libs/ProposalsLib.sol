@@ -25,7 +25,7 @@ library ProposalsLib {
     struct TriggerInfo {
         string priceURL;
         uint triggerPrice;
-        bool triggerAbove;
+        bool reverseRepo;
     }
 
     struct Users {
@@ -59,14 +59,14 @@ library ProposalsLib {
             uint farLegPrice,
             uint triggerPrice,
             string priceURL,
-            bool triggerAbove) public {
+            bool reverseRepo) public {
 
         self.proposalId = proposalId;
         self.exists = true;
         self.tokens = Tokens(token1Address, token2Address);
         self.users = Users(msg.sender, address(0));
         self.terms = Terms(vol, nearLegPrice, term, farLegPrice);
-        self.triggerInfo = TriggerInfo(priceURL, triggerPrice, triggerAbove);
+        self.triggerInfo = TriggerInfo(priceURL, triggerPrice, reverseRepo);
         self.status = uint8(Status.NEW);
 
         LogStatusEvent(self.proposalId, self.status);

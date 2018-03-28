@@ -3,7 +3,7 @@ import "./libs/StringsLib.sol";
 import "./libs/WalletLib.sol";
 import "./libs/ProposalsLib.sol";
 import "./libs/TokenTransferLib.sol";
-import "./libs/oraclizeAPI_0.5.sol"; // solhint-disable-line
+import "./libs/oraclizeAPI_0.5.sol";
 
 
 contract Badla is usingOraclize {
@@ -29,7 +29,7 @@ contract Badla is usingOraclize {
     @param proposalId is the UUID of the proposal.
     @return Banker Address, Player Address, Token 1 Address, Token 1 Volume, Token 2 Address,
             Near Leg Price, Term (in seconds), Far Leg Price, Trigger Price, Price URL,
-            TriggerAbove (true for Reverse Repo, false for Repo), Status of Proposal,
+            reverseRepo (true for Reverse Repo, false for Repo), Status of Proposal,
             Proposal Start Time(or accept time)
     */
     function getProposal(string proposalId) public constant
@@ -43,7 +43,7 @@ contract Badla is usingOraclize {
             p.tokens.token2Address, p.terms.nearLegPrice,
             p.terms.term, p.terms.farLegPrice, p.triggerInfo.triggerPrice,
             p.triggerInfo.priceURL,
-            p.triggerInfo.triggerAbove, p.status, p.startTime);
+            p.triggerInfo.reverseRepo, p.status, p.startTime);
         }
 
     /**
@@ -58,7 +58,7 @@ contract Badla is usingOraclize {
     @param farLegPrice Far Leg Price
     @param triggerPrice Trigger Price to enable for forced close.
     @param priceURL Source URL for Token 1 -> Token 2 exchange Price
-    @param triggerAbove (true for Reverse Repo, false for Repo)
+    @param reverseRepo (true for Reverse Repo, false for Repo)
     */
     function createProposal(string uuid,
                             address token1Address,
@@ -69,18 +69,29 @@ contract Badla is usingOraclize {
                             uint farLegPrice,
                             uint triggerPrice,
                             string priceURL,
-                            bool triggerAbove) public returns (bool) {
+                            bool reverseRepo) public returns (bool) {
 
         require(!proposals[uuid].exists);
 
-        if (!(msg.sender.safeTransfer(this, token1Address, vol))) {
-            LogError(uint8(Errors.INSUFFICIENT_BALANCE_OR_ALLOWANCE), "Insufficient balance to create prosposal");
-            return false;
+        oraclize_setNetwork(networkID_testnet);
+
+        if (reverseRepo) {
+            //token1Address - WETH, token2Address - ERCX
+            if (!(msg.sender.safeTransfer(this, token1Address, vol))) {
+                LogError(uint8(Errors.INSUFFICIENT_BALANCE_OR_ALLOWANCE), "Insufficient balance to create prosposal");
+                return false;
+            }
+        }  else {
+            //token1Address - ERCX, token2Address - DWETH
+            if (!(msg.sender.safeTransfer(this, token1Address, vol * nearLegPrice))) {
+                LogError(uint8(Errors.INSUFFICIENT_BALANCE_OR_ALLOWANCE), "Insufficient balance to create prosposal");
+                return false;
+            }
         }
 
         ProposalsLib.Proposal storage proposal = proposals[uuid];
         proposal.init(uuid, token1Address, vol, token2Address, nearLegPrice, term,
-            farLegPrice, triggerPrice, priceURL, triggerAbove);
+            farLegPrice, triggerPrice, priceURL, reverseRepo);
 
         return true;
     }
@@ -88,7 +99,7 @@ contract Badla is usingOraclize {
     /**
     @notice Player needs to allocate "Near Leg Price * vol" of Token 2 to Badla contract
     @dev Accept the prosposal(As a Player)
-    @param uuid is the UUID of the proposal.
+    @param pid is the pid of the proposal.
     */
     function acceptProposal(string pid) public returns (bool) {
 
@@ -97,14 +108,30 @@ contract Badla is usingOraclize {
         ProposalsLib.Proposal storage p = proposals[pid];
         require(p.canAccept());
 
-        uint tokenAmount = p.terms.nearLegPrice * p.terms.vol;
+        uint tokenAmount = 0;
 
-        if (!(msg.sender.safeTransfer(this, p.tokens.token2Address, tokenAmount))) {
-            LogError(uint8(Errors.INSUFFICIENT_BALANCE_OR_ALLOWANCE), "Insufficient balance to accept prosposal");
-            return false;
+        if (p.triggerInfo.reverseRepo) {
+
+            tokenAmount = p.terms.nearLegPrice * p.terms.vol;
+
+            if (!(msg.sender.safeTransfer(this, p.tokens.token2Address, tokenAmount))) {
+                LogError(uint8(Errors.INSUFFICIENT_BALANCE_OR_ALLOWANCE), "Insufficient balance to accept prosposal");
+                return false;
+            }
+
+            wallet.sendTo(msg.sender, p.tokens.token1Address, p.terms.vol);
+        } else {
+
+            tokenAmount = p.terms.vol;
+
+            if (!(msg.sender.safeTransfer(this, p.tokens.token2Address, tokenAmount))) {
+                LogError(uint8(Errors.INSUFFICIENT_BALANCE_OR_ALLOWANCE), "Insufficient balance to accept prosposal");
+                return false;
+            }
+
+            wallet.sendTo(msg.sender, p.tokens.token1Address, p.terms.nearLegPrice * p.terms.vol);
         }
 
-        wallet.sendTo(msg.sender, p.tokens.token1Address, p.terms.vol);
         p.markAccepted(msg.sender);
 
         return true;
@@ -113,7 +140,7 @@ contract Badla is usingOraclize {
     /**
     @notice Player needs to allocate "vol" of Token 1 to Badla contract
     @dev Settle the prosposal(As a Player)
-    @param uuid is the UUID of the proposal.
+    @param pid is the pid of the proposal.
     On settlement, banker gets "vol" token 1 and token 2 commission.
     Player gets back all her Token 2.
     */
@@ -122,26 +149,46 @@ contract Badla is usingOraclize {
         ProposalsLib.Proposal storage p = proposals[pid];
         require(p.canSettle());
 
-        if (!(msg.sender.safeTransfer(this, p.tokens.token1Address, p.terms.vol))) {
-            LogError(uint8(Errors.INSUFFICIENT_BALANCE_OR_ALLOWANCE), "Insufficient balance to settle prosposal");
-            return false;
+        uint playerAmount = 0;
+        uint bankerAmount = 0;
+        if (p.triggerInfo.reverseRepo) {
+
+            if (!(msg.sender.safeTransfer(this, p.tokens.token1Address, p.terms.vol))) {
+                LogError(uint8(Errors.INSUFFICIENT_BALANCE_OR_ALLOWANCE), "Insufficient balance to settle prosposal");
+                return false;
+            }
+
+            playerAmount = (p.terms.farLegPrice * p.terms.vol);
+            bankerAmount = ((p.terms.nearLegPrice-p.terms.farLegPrice) * p.terms.vol);
+
+            wallet.sendTo(p.users.player, p.tokens.token2Address, playerAmount);
+            wallet.sendTo(p.users.banker, p.tokens.token1Address, p.terms.vol);
+            wallet.sendTo(p.users.banker, p.tokens.token2Address, bankerAmount);
+
+            p.markSettled();
+
+        } else {
+
+            if (!(msg.sender.safeTransfer(this, p.tokens.token1Address, p.terms.farLegPrice * p.terms.vol))) {
+                LogError(uint8(Errors.INSUFFICIENT_BALANCE_OR_ALLOWANCE), "Insufficient balance to settle prosposal");
+                return false;
+            }
+
+            playerAmount = p.terms.vol;
+            bankerAmount = (p.terms.farLegPrice * p.terms.vol);
+
+            wallet.sendTo(p.users.player, p.tokens.token2Address, playerAmount);
+            wallet.sendTo(p.users.banker, p.tokens.token1Address, bankerAmount);
+
+            p.markSettled();
         }
-
-        uint playerAmount = (p.terms.farLegPrice * p.terms.vol);
-        uint bankerAmount = ((p.terms.nearLegPrice-p.terms.farLegPrice) * p.terms.vol);
-
-        wallet.sendTo(p.users.player, p.tokens.token2Address, playerAmount);
-        wallet.sendTo(p.users.banker, p.tokens.token1Address, p.terms.vol);
-        wallet.sendTo(p.users.banker, p.tokens.token2Address, bankerAmount);
-
-        p.markSettled();
 
         return true;
     }
 
     /**
     @dev Force close the prosposal(As a Banker) based on trigger price.
-    @param uuid is the UUID of the proposal.
+    @param pid is the pid of the proposal.
     Banker has to pay to Oraclize Service
     */
     function forceCloseOnPrice(string pid) public payable returns(bool) {
@@ -162,9 +209,12 @@ contract Badla is usingOraclize {
         }
     }
 
-    function __callback(bytes32 queryId, string result) public {
+    function __callback(bytes32 queryId, string result, bytes proof) public {
 
         if (msg.sender != oraclize_cbAddress()) revert();
+        LogError(uint8(Errors.TRIGGER_PRICE), "__callback was called");
+
+        LogError(uint8(Errors.TRIGGER_PRICE), result);
 
         uint currentPrice = result.toUint();
         string memory proposalId = priceQueries[queryId];
@@ -173,8 +223,8 @@ contract Badla is usingOraclize {
 
         require(p.exists);
 
-        if ((p.triggerInfo.triggerAbove && currentPrice > p.triggerInfo.triggerPrice) ||
-            (!p.triggerInfo.triggerAbove && currentPrice < p.triggerInfo.triggerPrice)) {
+        if ((p.triggerInfo.reverseRepo && currentPrice > p.triggerInfo.triggerPrice) ||
+            (!p.triggerInfo.reverseRepo && currentPrice < p.triggerInfo.triggerPrice)) {
 
             _forceCloseOnPrice(proposalId);
             LogError(uint8(Errors.TRIGGER_PRICE),
@@ -189,7 +239,7 @@ contract Badla is usingOraclize {
 
     /**
     @dev Force close the prosposal(As a Banker) based on expiry.
-    @param uuid is the UUID of the proposal.
+    @param pid is the pid of the proposal.
     */
     function forceCloseOnExpiry(string pid) public returns(bool) {
 
@@ -197,7 +247,11 @@ contract Badla is usingOraclize {
         require(p.canForceClose());
         require(p.isExpired());
 
-        wallet.sendTo(p.users.banker, p.tokens.token2Address, (p.terms.nearLegPrice * p.terms.vol));
+        if (p.triggerInfo.reverseRepo) {
+            wallet.sendTo(p.users.banker, p.tokens.token2Address, (p.terms.nearLegPrice * p.terms.vol));
+        } else {
+            wallet.sendTo(p.users.banker, p.tokens.token2Address, (p.terms.vol));
+        }
 
         p.markForceClosedOnExpiry();
 
@@ -206,7 +260,7 @@ contract Badla is usingOraclize {
 
     /**
     @dev Cancel the prosposal(As a Banker).
-    @param uuid is the UUID of the proposal.
+    @param pid is the pid of the proposal.
     You can only cancel the proposal if it is not accepted by the player
     */
     function cancelProposal(string pid) public returns (bool) {
@@ -214,7 +268,11 @@ contract Badla is usingOraclize {
         ProposalsLib.Proposal storage p = proposals[pid];
         require(p.canCancel());
 
-        wallet.sendTo(p.users.banker, p.tokens.token1Address, p.terms.vol);
+        if (p.triggerInfo.reverseRepo) {
+            wallet.sendTo(p.users.banker, p.tokens.token1Address, p.terms.vol);
+        } else {
+            wallet.sendTo(p.users.banker, p.tokens.token1Address, p.terms.nearLegPrice * p.terms.vol);
+        }
         p.markCancelled();
 
         return true;
@@ -222,7 +280,7 @@ contract Badla is usingOraclize {
 
     /**
     @dev Withdraw token from Badla wallet.
-    @param address is the Address of Token.
+    @param tokenAddress is the Address of Token.
     */
     function withdraw(address tokenAddress) public returns (bool) {
         return wallet.withdraw(tokenAddress);
@@ -230,7 +288,7 @@ contract Badla is usingOraclize {
 
     /**
     @dev Get Users Token Balance in Badla Wallet
-    @param address is the Address of Token.
+    @param tokenAddress is the Address of Token.
     */
     function balanceOf(address tokenAddress) public view returns (uint) {
         return wallet.balanceOf(msg.sender, tokenAddress);
@@ -241,7 +299,11 @@ contract Badla is usingOraclize {
         ProposalsLib.Proposal storage p = proposals[pid];
         require(p.canForceClose());
 
-        wallet.sendTo(p.users.banker, p.tokens.token2Address, (p.terms.nearLegPrice * p.terms.vol));
+        if (p.triggerInfo.reverseRepo) {
+            wallet.sendTo(p.users.banker, p.tokens.token2Address, (p.terms.nearLegPrice * p.terms.vol));
+        } else {
+            wallet.sendTo(p.users.banker, p.tokens.token2Address, (p.terms.vol));
+        }
         p.markForceClosedOnPrice();
 
         return true;
