@@ -106,10 +106,10 @@ class Badla {
         });
     }
 
-    createProposal(proposalId, token1Address, quantity, token2Address, price, term, returnPrice, triggerPrice, priceUrl, reverseRepo) {
+    createProposal(proposalId, token1Address, quantity, token2Address, price, term, returnPrice, triggerPrice, priceUrl, isReverseRepo) {
         return new Promise((succ, err) => {
             let account = this.blockChain.currentAccount();
-            this.Badla.createProposal(proposalId, token1Address, quantity, token2Address, price, term, returnPrice, triggerPrice, priceUrl, reverseRepo, {
+            this.Badla.createProposal(proposalId, token1Address, quantity, token2Address, price, term, returnPrice, triggerPrice, priceUrl, isReverseRepo, {
                 from: account
             }, (e, res) => {
                 if (e) {

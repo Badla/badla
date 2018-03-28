@@ -86,20 +86,21 @@ class BadlaWeb {
      * @param {number} returnPrice - Expected return price
      * @param {number} triggerPrice - Price at which force settlement will trigger
      * @param {url} priceUrl - Oraclize url for price check to force settle
-     * @param {boolean} reverseRepo - Is it reverse repo
+     * @param {boolean} isReverseRepo - Is it reverse repo
      * @param {string} statusCallback - Callback that notifies state of the proposal creation after each step
      * @return {Promise} promise that succeeds with proposal details
      */
-    createProposal(tokenAddress1, quantity, tokenAddress2, price, term, returnPrice, triggerPrice, priceUrl, reverseRepo, statusCallback) {
+    createProposal(tokenAddress1, quantity, tokenAddress2, price, term, returnPrice, triggerPrice, priceUrl, isReverseRepo, statusCallback) {
         return new Promise((succ, err) => {
             var proposalId = UUID();
             statusCallback(5, "Waiting for token approval");
-            this.blockChain.approveToken(tokenAddress1, quantity).then((transactionId) => {
+            var approvalQuantity = isReverseRepo ? quantity : price * quantity;
+            this.blockChain.approveToken(tokenAddress1, approvalQuantity).then((transactionId) => {
                 statusCallback(30, "Got token approval. Verifying...");
                 return this.blockChain.waitUntilMined(transactionId);
             }).then(() => {
                 statusCallback(60, "Creating proposal");
-                return this.badla.createProposal(proposalId, tokenAddress1, quantity, tokenAddress2, price, term, returnPrice, triggerPrice, priceUrl, reverseRepo);
+                return this.badla.createProposal(proposalId, tokenAddress1, quantity, tokenAddress2, price, term, returnPrice, triggerPrice, priceUrl, isReverseRepo);
             }).then((transactionId) => {
                 statusCallback(90, "Proposal created. Verifying...");
                 return this.blockChain.waitUntilMined(transactionId);
@@ -146,7 +147,8 @@ class BadlaWeb {
     acceptProposal(proposal, statusCallback) {
         return new Promise((succ, err) => {
             statusCallback(5, "Awaiting token approval...");
-            this.blockChain.approveToken(proposal.token2Address, (proposal.nearLegPrice * proposal.vol)).then((transactionId) => {
+            var approvalQuantity = proposal.isReverseRepo ? proposal.nearLegPrice * proposal.vol : parseInt(proposal.vol);
+            this.blockChain.approveToken(proposal.token2Address, approvalQuantity).then((transactionId) => {
                 statusCallback(30, "Got token approval. Verifying...");
                 return this.blockChain.waitUntilMined(transactionId);
             }).then(() => {
@@ -174,7 +176,8 @@ class BadlaWeb {
     settleProposal(proposal, statusCallback) {
         return new Promise((succ, err) => {
             statusCallback(5, "Settling proposal...");
-            this.blockChain.approveToken(proposal.token1Address, proposal.vol.toString()).then((transactionId) => {
+            var approvalQuantity = proposal.isReverseRepo ? parseInt(proposal.vol) : proposal.farLegPrice * proposal.vol;
+            this.blockChain.approveToken(proposal.token1Address, approvalQuantity).then((transactionId) => {
                 statusCallback(20, "Got token approval. Verifying...");
                 return this.blockChain.waitUntilMined(transactionId);
             }).then(() => {

@@ -18,12 +18,19 @@ class CreateProposalForm extends React.Component {
             'valid': true,
             'forceSettlement' : false,
             'term' : 20,
-            'triggerAbove' : true
+            'volume' : "20",
+            'isReverseRepo' : true,
+            'nearLegPrice' : "2000",
+            'farLegPrice' : "1800",
+            'lendingToken' : ABI.WETHTokenAddress,
+            'desiredToken' : ABI.ERCXTokenAddress,
+            'lendingTokenName' : 'WETH',
+            'desiredTokenName' : 'ERCX'
         };
     }
 
     componentDidMount() {
-        this.termChange(20);
+        this.termChange(this.state.term);
         this.triggerDirectionChange(true);
     }
 
@@ -44,25 +51,27 @@ class CreateProposalForm extends React.Component {
             return;
         }
 
+        var lendingToken = this.state.lendingToken;
+        var desiredToken = this.state.desiredToken;
         var nearLegPrice = this.state.nearLegPrice;
         var farLegPrice = this.state.farLegPrice;
         var term = this.state.term;
         let volume = this.state.volume;
         let triggerPrice = this.state.forceSettlement ? this.state.triggerPrice : 0;
         let priceUrl = this.state.forceSettlement ? this.state.priceUrl : "";
-        let triggerAbove = this.state.triggerAbove;
+        let isReverseRepo = this.state.isReverseRepo;
 
-        if (triggerAbove && nearLegPrice < farLegPrice) {
+        if (isReverseRepo && nearLegPrice < farLegPrice) {
             this.setState({'valid':false, "proposal":false, 'errorMsg':'Near leg price should be > Far leg price for reverse repo contract'})
             return;
-        } else if (!triggerAbove && nearLegPrice > farLegPrice) {
+        } else if (!isReverseRepo && nearLegPrice > farLegPrice) {
             this.setState({'valid':false, "proposal":false, 'errorMsg':'Near leg price should be < Far leg price for repo contract'})
             return;
         }
 
         this.setProposalCreatingState({progress:10, msg:"Waiting for token approval"});
 
-        this.badlaWeb.createProposal(ABI.WETHTokenAddress, volume, ABI.ERCXTokenAddress, nearLegPrice, term, farLegPrice, triggerPrice, priceUrl, triggerAbove, (percent, msg) => {
+        this.badlaWeb.createProposal(lendingToken, volume, desiredToken, nearLegPrice, term, farLegPrice, triggerPrice, priceUrl, isReverseRepo, (percent, msg) => {
             this.setProposalCreatingState({progress:percent, msg:msg})
         }).then((proposal) => {
             this.setProposalCreatingState({done:true, progress:100, userData:JSON.stringify(proposal, null, 4), msg:`Proposal created with id - "${proposal["id"]}"`});
@@ -119,7 +128,21 @@ class CreateProposalForm extends React.Component {
     }
 
     triggerDirectionChange(value) {
-        this.stateChanged("triggerAbove", (value === true || value === "true"), true);
+        this.stateChanged("isReverseRepo", (value === true || value === "true"), true);
+        var lendingToken = ABI.ERCXTokenAddress;
+        var desiredToken = ABI.WETHTokenAddress;
+        var lendingTokenName = "ERCX";
+        var desiredTokenName = "WETH";
+        if (value === true || value === "true") {
+            lendingToken = ABI.WETHTokenAddress;
+            desiredToken = ABI.ERCXTokenAddress;
+            lendingTokenName = "WETH";
+            desiredTokenName = "ERCX";
+        }
+        this.stateChanged("lendingToken", lendingToken, true);
+        this.stateChanged("desiredToken", desiredToken, true);
+        this.stateChanged("lendingTokenName", lendingTokenName, true);
+        this.stateChanged("desiredTokenName", desiredTokenName, true);
     }
 
     render() {
@@ -131,37 +154,31 @@ class CreateProposalForm extends React.Component {
                     <Message msg={this.state.errorMsg} error="true" closeable="true" dismissAlert={this.dismissAlert.bind(this)} />}
                 { this.state.proposal &&
                     <Message msg={`Proposal created with id - ${this.state.proposal.id}`} error="false" closeable="true" dismissAlert={this.dismissAlert.bind(this)} />}
-                <div className="clear hidden">
-                    <div className="half left"><FormInput alignClass="rightAlign" validator="address" onChange={this.stateChanged.bind(this)} id="lendingToken" value={ABI.WETHTokenAddress} placeholder="Enter Token Address" extraHelp="A ERC20 Token Address like 0xAbd123..." /></div>
-                    <div className="half right"><FormInput validator="address" onChange={this.stateChanged.bind(this)} id="desiredToken" value={ABI.ERCXTokenAddress} placeholder="Enter Token Name" extraHelp="A ERC20 Token Address like 0xAbd123..." /></div>
+                <div className="clear">
+                    <div className="half left"><FormInput alignClass="rightAlign" validator="address" onChange={this.stateChanged.bind(this)} id="lendingToken" value={this.state.lendingToken} placeholder="Enter Token Address" extraHelp="A ERC20 Token Address like 0xAbd123..." /></div>
+                    <div className="half right"><FormInput validator="address" onChange={this.stateChanged.bind(this)} id="desiredToken" value={this.state.desiredToken} placeholder="Enter Token Name" extraHelp="A ERC20 Token Address like 0xAbd123..." /></div>
                 </div>
                 <div>
                     <div className="half left">
-                        <ControlLabel className="rightAlign">Cash Token</ControlLabel>
-                        <div className="rightAlign tokenName">
-                            WETH
-                        </div>
+                        <div className="rightAlign tokenName">{this.state.lendingTokenName}</div>
                     </div>
                     <div className="half right">
-                        <ControlLabel>
-                            Token
-                        </ControlLabel>
-                        <div className="tokenName">ERCX</div>
+                        <div className="tokenName">{this.state.desiredTokenName}</div>
                     </div>
                 </div>
                 <div>
-                    <div className="half left"><FormInput alignClass="rightAlign" validator="number" onChange={this.stateChanged.bind(this)} id="nearLegPrice" label="Near Leg Price" value="2000" placeholder="Enter the near leg price" extraHelp="For 1 lending token. Ex: 2000" /></div>
-                    <div className="half right"><FormInput validator="number" onChange={this.stateChanged.bind(this)} id="farLegPrice" label="Far Leg Price" value="1800" placeholder="Enter the far leg price" extraHelp="For 1 lending token after contract term ends. Ex: 1800" /></div>
+                    <div className="half left"><FormInput alignClass="rightAlign" validator="number" onChange={this.stateChanged.bind(this)} id="nearLegPrice" label="Near Leg Price" value={this.state.nearLegPrice} placeholder="Enter the near leg price" extraHelp="For 1 lending token. Ex: 2000" /></div>
+                    <div className="half right"><FormInput validator="number" onChange={this.stateChanged.bind(this)} id="farLegPrice" label="Far Leg Price" value={this.state.farLegPrice} placeholder="Enter the far leg price" extraHelp="For 1 lending token after contract term ends. Ex: 1800" /></div>
                 </div>
                 <FormGroup>
                     <ControlLabel>Agreement Type</ControlLabel>
                     <br />
-                    <DropdownButton onSelect={this.triggerDirectionChange.bind(this)} title={this.state.triggerAbove ? "Reverse Repo" : "Repo"} id="triggerAbove">
+                    <DropdownButton onSelect={this.triggerDirectionChange.bind(this)} title={this.state.isReverseRepo ? "Reverse Repo" : "Repo"} id="isReverseRepo">
                        <MenuItem eventKey="false">Repo</MenuItem>
                        <MenuItem eventKey="true">Reverse Repo</MenuItem>
                     </DropdownButton>
                 </FormGroup>
-                <FormInput validator="number" onChange={this.stateChanged.bind(this)} id="volume" label="Volume" value="20" placeholder="Enter the volume" extraHelp="Ex: 20" />
+                <FormInput validator="number" onChange={this.stateChanged.bind(this)} id="volume" label="Volume" value={this.state.volume} placeholder="Enter the volume" extraHelp="Ex: 20" />
                 <FormGroup>
                     <ControlLabel>Term</ControlLabel>
                     <br />
@@ -181,9 +198,9 @@ class CreateProposalForm extends React.Component {
                     <Panel.Heading>Forced Settlement Details</Panel.Heading>
                     <Panel.Body>
                         <div>
-                            <FormInput validator="number" onChange={this.stateChanged.bind(this)} id="triggerPrice" label="Trigger Price" value="2000" placeholder="Enter the trigger price" extraHelp="Ex: 2000" />
+                            <FormInput validator="number" onChange={this.stateChanged.bind(this)} id="triggerPrice" label="Trigger Price" value={this.state.triggerPrice} placeholder="Enter the trigger price" extraHelp="Ex: 2000" />
                         </div>
-                        <FormInput onChange={this.stateChanged.bind(this)} id="priceUrl" label="Price URL" placeholder="http://..." extraHelp="" />
+                        <FormInput onChange={this.stateChanged.bind(this)} id="priceUrl" label="Price URL" value={this.state.priceUrl} placeholder="http://..." extraHelp="" />
                     </Panel.Body>
                 </Panel> }
                 <Button bsStyle="primary" onClick={this.createProposal.bind(this)}>Create</Button>
