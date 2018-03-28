@@ -77,7 +77,7 @@ class Badla {
             let account = this.blockChain.currentAccount();
             this.Badla.forceCloseOnPrice(proposalId, {
                 from: account,
-                value: this.blockChain.toWei(0.01)
+                value: this.blockChain.toWei(0.005)
             }, (e, res) => {
                 if (e) {
                     err("Force close proposal on price failed")
@@ -94,7 +94,7 @@ class Badla {
             let account = this.blockChain.currentAccount();
             this.Badla.forceCloseOnExpiry(proposalId, {
                 from: account,
-                value: this.blockChain.toWei(1)
+                value: this.blockChain.toWei(0.005)
             }, (e, res) => {
                 if (e) {
                     err("Force close proposal on expiry failed")
@@ -156,7 +156,7 @@ class Badla {
                 if (e) {
                     err(e)
                 } else {
-                    succ(parseInt(res.toString(10)))
+                    succ(parseInt(res.toString(10), 10))
                 }
             });
         });

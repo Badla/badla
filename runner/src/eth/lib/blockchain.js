@@ -116,7 +116,7 @@ class BlockChain {
                 if (e) {
                     err(e)
                 } else {
-                    succ(parseInt(res.toString(10)))
+                    succ(parseInt(res.toString(10), 10))
                 }
             });
         });
